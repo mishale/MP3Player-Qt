@@ -1,0 +1,26 @@
+QToolButton.soundControlButton {
+    border-style: none;
+    border: 1px solid hsl(0, 0%, 85%);
+    border-radius: 10px;
+    min-width: 30px;
+    min-height: 30px;
+    icon-size: 20px 20px;
+}
+
+QToolButton.playButton {
+    background-color: hsl(113, 58%, 19%);
+    icon-size: 15px 15px;
+}
+
+QToolButton.playButton:hover {
+    background-color: hsl(113, 58%, 29%);
+}
+
+QToolButton.pauseButton {
+    background-color: hsl(0, 58%, 19%);
+    icon-size: 15px 15px;
+}
+
+QToolButton.pauseButton:hover {
+    background-color: hsl(0, 58%, 29%);
+}
