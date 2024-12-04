@@ -3,7 +3,7 @@
 
 PlaylistManager::PlaylistManager(){}
 
-QList<Playlist> PlaylistManager::getPlaylists()
+QList<Playlist*> PlaylistManager::getPlaylists()
 {
     return playlists;
 }
@@ -18,12 +18,12 @@ void PlaylistManager::createPlaylist(const Playlist &playlist)
 {
 }
 */
-void PlaylistManager::addPlaylist(const Playlist& playlist)
+void PlaylistManager::addPlaylist(Playlist* playlist)
 {
     playlists.append(playlist);
 }
 
-void PlaylistManager::deletePlaylist(const Playlist& playlist)
+void PlaylistManager::deletePlaylist(Playlist* playlist)
 {
     playlists.removeOne(playlist);
 }

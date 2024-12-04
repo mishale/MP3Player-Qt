@@ -29,7 +29,7 @@ private slots:
     void startSong(QListWidgetItem *item); // Song abspielen & Warteschlange
     void pause(); // pausieren/abspielen
     void createPlaylistUI(); // GUI zum Playlist erstellen
-    void showPlaylist(QListWidgetItem *playlist); // Playlist anzeigen
+    void getPlaylistOnClick(QListWidgetItem *playlist); // Playlist anzeigen
     void printSongList();
     void exportSongListToJson();
     void showContextMenuPlaylist(const QPoint &pos); // Kontext-Menü bei Rechtsklick
@@ -38,6 +38,7 @@ private slots:
     void addSongToPlaylist(); // Song zu einer Playlist hinzufügen
     void deleteSong(); // Song aus Playlist löschen
     void changeVolume(int value); // Ändern der Lautstärke
+    void fromLibToPlaylist(Playlist* playlist);
 
 private:
     Ui::MainWindow *ui;
@@ -53,6 +54,9 @@ private:
     Playlist *newPlaylist;
     void addClass(QWidget* widget, const QString& classToAdd);
     void removeClass(QWidget* widget, const QString& classToRemove);
+    void displayPlaylist(Playlist* playlist);
+    void displayMetaData(Song* song);
+    Playlist* getPlaylistByGUI(QListWidgetItem *selectedItem);
 
 };
 #endif // MAINWINDOW_H

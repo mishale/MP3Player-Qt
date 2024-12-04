@@ -36,12 +36,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->playlists->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->songList->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    qDebug() << "Test";
-
     initPlayer();
     connect(ui->selectDirButton, &QPushButton::clicked, this, &MainWindow::selectDirectory);
     connect(ui->songList, &QListWidget::itemDoubleClicked, this, &MainWindow::startSong);
-    connect(ui->playlists, &QListWidget::itemClicked, this, &MainWindow::showPlaylist);
+    connect(ui->playlists, &QListWidget::itemClicked, this, &MainWindow::getPlaylistOnClick);
     connect(ui->pauseButton, &QPushButton::clicked, this, &MainWindow::pause);
     connect(ui->newPlaylist, &QPushButton::clicked, this, &MainWindow::createPlaylistUI);
     connect(ui->playlists, &QListWidget::customContextMenuRequested,
@@ -75,16 +73,16 @@ void MainWindow::selectDirectory()
     if (ui->playlists->findItems("Bibliothek", Qt::MatchExactly).isEmpty())
     {
         ui->playlists->addItem(bibliothek->getName());
-        allPlaylists->addPlaylist(*bibliothek);
+        allPlaylists->addPlaylist(bibliothek);
     }
 
     if (!fileName.isEmpty())
     {
         Song* song = new Song(fileName);
-        bibliothek->addSong(*song);
-        queue->addSong(*song);
-        mediaPlayer->setSource(fileName);
-        connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [this, &song, fileName](QMediaPlayer::MediaStatus status) {
+        bibliothek->addSong(song);
+        queue->addSong(song);
+        displayMetaData(song);
+/*        connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [this, &song, fileName](QMediaPlayer::MediaStatus status) {
             if (status == QMediaPlayer::LoadedMedia) {
                 QList<QString> metaList = song->getMetaData(mediaPlayer->metaData());
                 if(metaList.at(0) == "")
@@ -97,6 +95,7 @@ void MainWindow::selectDirectory()
                 }
             }
         });
+*/
     }
 }
 
@@ -110,11 +109,35 @@ void MainWindow::searchMP3Files(const QString &directoryPath)
 
     QFileInfoList fileList = dir.entryInfoList(QDir::Files);
 
-    for (const QFileInfo &fileInfo : fileList) {
+/*    for (const QFileInfo &fileInfo : fileList) {
         ui->songList->addItem(fileInfo.fileName());
     }
+*/
 }
 
+void MainWindow::displayPlaylist(Playlist* playlist)
+{
+    ui->songList->clear();
+    QList<Song*> allSongs = playlist->getSongs();
+    for (Song* s : allSongs)
+    {
+        QList<QString> metaList = s->getCachedMetaData();
+        ui->songList->addItem(metaList.at(0));
+    }
+
+}
+
+void MainWindow::displayMetaData(Song* song)
+{
+    QString fileName = song->getFilePath();
+    mediaPlayer->setSource(fileName);
+    connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [this, song, fileName](QMediaPlayer::MediaStatus status) {
+        if (status == QMediaPlayer::LoadedMedia) {
+            QList<QString> metaList = song->getMetaData(mediaPlayer->metaData());
+            ui->songList->addItem(metaList.at(0));
+        }
+    });
+}
 void MainWindow::startSong(QListWidgetItem *item)
 {
     QString filePath = item->text();
@@ -123,42 +146,24 @@ void MainWindow::startSong(QListWidgetItem *item)
     connect(ui->nextButton, QPushButton::clicked, this, [=]()
             {
                 queue->forwards();
-                Song currentSong = queue->getCurrentSong();
-                mediaPlayer->setSource(currentSong.getFilePath());
+                Song* currentSong = queue->getCurrentSong();
+                mediaPlayer->setSource(currentSong->getFilePath());
                 mediaPlayer->play();
             });
 
     connect(ui->prevButton, QPushButton::clicked, this, [=]()
             {
                 queue->backwards();
-                Song currentSong = queue->getCurrentSong();
+                Song* currentSong = queue->getCurrentSong();
 
-                mediaPlayer->setSource(currentSong.getFilePath());
+                mediaPlayer->setSource(currentSong->getFilePath());
                 mediaPlayer->play();
             });
 }
 
-void MainWindow::showPlaylist(QListWidgetItem *playlist)
+void MainWindow::getPlaylistOnClick(QListWidgetItem *playlist)
 {
-    ui->songList->clear();
-    QString playlistName = playlist->text();
-    QList<Playlist> everyPlaylist = allPlaylists->getPlaylists();
-    for (const Playlist& pp : everyPlaylist)
-    {
-        qDebug() << pp.getName();
-        qDebug() << "Playlistname " << playlistName;
-        if(pp.getName() == playlistName)
-        {
-            qDebug() << "geht in if rein";
-            QList<Song> allSongs = pp.getSongs();
-            for (const Song &s : allSongs)
-            {
-                qDebug() << s.getFilePath();
-                ui->songList->addItem(s.getFilePath());
-            }
-            //break;
-        }
-    }
+    displayPlaylist(getPlaylistByGUI(playlist));
 }
 
 void MainWindow::pause()
@@ -193,14 +198,7 @@ void MainWindow::createPlaylistUI()
         connect(createButton, &QPushButton::clicked, this, [=]() {
             newPlaylist->changeName(nameInput->text());
             ui->playlists->addItem(newPlaylist->getName());
-            allPlaylists->addPlaylist(*newPlaylist);
-            //qDebug() << playlist->getName();
-            /*          QList<Playlist> everyPlaylist = allPlaylists->getPlaylists();
-            for (const Playlist& p : everyPlaylist)
-            {
-                qDebug() << p.getName();
-            }
-*/
+            allPlaylists->addPlaylist(newPlaylist);
             delete nameInput;
             delete createButton;
             widgetsCreated = false;
@@ -232,13 +230,13 @@ void MainWindow::showContextMenuSongs(const QPoint &pos)
     contextMenu.addAction(actionDeleteSong);
 
     QMenu *subMenu = new QMenu("zu Playlist hinzufügen", &contextMenu);
-    QList<Playlist> playlists = allPlaylists->getPlaylists();
+    QList<Playlist*> playlists = allPlaylists->getPlaylists();
 
-    for (const Playlist &playlist : playlists) {
-        QAction *actionToPlaylist = new QAction(playlist.getName(), this);
+    for (Playlist* playlist : playlists) {
+        QAction *actionToPlaylist = new QAction(playlist->getName(), this);
         connect(actionToPlaylist, &QAction::triggered, this, [this, playlist]() {
-            addSongToPlaylist();
-            qDebug() << "zu" << playlist.getName() << "hinzugefügt";
+            fromLibToPlaylist(playlist);
+            qDebug() << "zu" << playlist->getName() << "hinzugefügt";
         });
         subMenu->addAction(actionToPlaylist);
     }
@@ -246,55 +244,85 @@ void MainWindow::showContextMenuSongs(const QPoint &pos)
     contextMenu.exec(ui->songList->mapToGlobal(pos));
 }
 
+void MainWindow::fromLibToPlaylist(Playlist* playlist)
+{
+    QListWidgetItem *selectedItem = ui->songList->currentItem();
+    QString filePath = selectedItem->text();
+    QList<Song*> allSongs = playlist->getSongs();
+    for(Song* s : allSongs)
+    {
+        if(s->getFilePath() == filePath)
+        {
+            playlist->addSong(s);
+        }
+    }
+}
 void MainWindow::addSongToPlaylist()
 {
     QListWidgetItem *selectedItem = ui->playlists->currentItem();
     QString playlistName = selectedItem->text();
-    QList<Playlist> everyPlaylist = allPlaylists->getPlaylists();
-    for (Playlist& p : everyPlaylist)
+    QList<Playlist*> everyPlaylist = allPlaylists->getPlaylists();
+    for (Playlist* p : everyPlaylist)
     {
-        if(p.getName() == playlistName)
+        if(p->getName() == playlistName)
         {
             QString fileName = QFileDialog::getOpenFileName(this, "Wähle eine MP3-Datei aus", QString(), "MP3-Dateien (*.mp3)");
-            Song song(fileName);
-            //ui->songList->addItem(QFileInfo(fileName).fileName()); // Die ausgewählte Datei zur Liste hinzufügen
-            ui->songList->addItem(song.getFilePath());
-            p.addSong(song);
-            QList<Song> psongs = newPlaylist->getSongs();
-            for (const Song& psong : psongs)
-            {
-                qDebug() << psong.getFilePath();
-            }
-            /*           QList <Song> psongs = p.getSongs();
-            for(const Song &psong : psongs)
-            {
-                qDebug() << psong.getFilePath();
-            }
-*/
+            Song* song = new Song(fileName);
+            ui->songList->addItem(song->getFilePath());
+            p->addSong(song);
+            displayPlaylist(p);
         }
     }
 
 }
-void MainWindow::deletePlaylist()
+Playlist* MainWindow::getPlaylistByGUI(QListWidgetItem *selectedItem)
 {
-    QListWidgetItem *selectedItem = ui->playlists->currentItem();
     if (!selectedItem) {
-        qWarning() << "No item selected for deletion.";
-        return;
+        qWarning() << "No item selected.";
+        return nullptr;
     }
     else
     {
         QString playlistName = selectedItem->text();
-        QList<Playlist> everyPlaylist = allPlaylists->getPlaylists();
-        for (const Playlist& p : everyPlaylist)
+        for (Playlist* p : allPlaylists->getPlaylists())
         {
-            if(p.getName() == playlistName)
+            if(p->getName() == playlistName)
             {
-                allPlaylists->deletePlaylist(p);
+                return p;
             }
         }
-        delete ui->playlists->takeItem(ui->playlists->row(selectedItem));
+        return nullptr;
+
     }
+}
+/*
+Song* MainWindow::getSongByGUI(QListWidgetItem *selectedItem)
+{
+    if (!selectedItem) {
+        qWarning() << "No item selected.";
+        return;
+    }
+    else
+    {
+        QString filePath = selectedItem->text();
+        for (Song* s : allPlaylists->getPlaylists())
+        {
+            if(s->getFilePath() == filePath)
+            {
+                return s;
+            }
+        }
+
+    }
+}
+*/
+void MainWindow::deletePlaylist()
+{
+    Playlist* playlist = getPlaylistByGUI(ui->playlists->currentItem());
+    allPlaylists->deletePlaylist(playlist);
+    ui->songList->clear();
+    delete ui->playlists->takeItem(ui->playlists->row(ui->playlists->currentItem()));
+
 }
 
 void MainWindow::deleteSong()

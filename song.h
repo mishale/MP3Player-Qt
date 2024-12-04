@@ -10,7 +10,8 @@ public:
     Song(const QString& filePath);
 
     QString getFilePath() const;
-    QList<QString> getMetaData(const QMediaMetaData& metaData) const;
+    QList<QString> getMetaData(const QMediaMetaData& metaData);
+    QList<QString> getCachedMetaData() const;
     bool operator==(const Song& other) const {
         return this->filePath == other.filePath;
     }
@@ -18,6 +19,8 @@ public:
 private:
 
     QString filePath;
+    QList<QString> metaList;
+    bool metaDataLoaded = false;
 
 
 };

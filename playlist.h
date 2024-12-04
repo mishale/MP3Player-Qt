@@ -10,11 +10,11 @@ public:
     Playlist(const QString& name);
 
     QString getName() const;
-    QList<Song> getSongs() const;
-    void addSong(const Song &song);
-    void deleteSong(const Song& song);
+    QList<Song*> getSongs() const;
+    void addSong(Song* song);
+    void deleteSong(Song* song);
     void changeName(const QString& newName);
-    bool containsSong(const Song& song);
+    bool containsSong(Song* song);
     bool operator==(const Playlist& other) const {
         return this->name == other.name;
     }
@@ -22,7 +22,7 @@ public:
 private:
 
     QString name;
-    QList<Song> songs;
+    QList<Song*> songs;
 };
 
 #endif // PLAYLIST_H

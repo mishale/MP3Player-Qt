@@ -13,7 +13,7 @@ Queue::~Queue()
     }
 }
 
-void Queue::addSong(const Song& song) {
+void Queue::addSong(Song* song) {
     Node* newNode = new Node(song);
     if (head == nullptr) {
         head = tail = current = newNode;
@@ -46,7 +46,7 @@ void Queue::backwards()
     }
 }
 
-Song Queue::getCurrentSong() const
+Song* Queue::getCurrentSong() const
 {
     if (current != nullptr) {
         return current->song;

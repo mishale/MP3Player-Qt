@@ -9,14 +9,14 @@ class PlaylistManager
 public:
     PlaylistManager();
 
-    QList<Playlist> getPlaylists();
+    QList<Playlist*> getPlaylists();
     void createPlaylist(const Playlist& playlist);
-    void addPlaylist(const Playlist& playlist);
-    void deletePlaylist(const Playlist& playlist);
+    void addPlaylist(Playlist* playlist);
+    void deletePlaylist(Playlist* playlist);
 
 private:
 
-    QList<Playlist> playlists;
+    QList<Playlist*> playlists;
 };
 
 #endif // PLAYLISTMANAGER_H
