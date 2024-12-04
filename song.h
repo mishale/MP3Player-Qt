@@ -1,6 +1,5 @@
 #ifndef SONG_H
 #define SONG_H
-#include "metadata.h"
 #include <QString>
 #include <QMediaMetaData>
 #include <QList>

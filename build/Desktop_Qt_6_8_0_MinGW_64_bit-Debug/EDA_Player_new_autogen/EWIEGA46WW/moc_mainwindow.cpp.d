@@ -1,6 +1,5 @@
 C:/Users/Pia/Documents/EDA_Player_new/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/EDA_Player_new_autogen/EWIEGA46WW/moc_mainwindow.cpp: C:/Users/Pia/Documents/EDA_Player_new/mainwindow.h \
   C:/Users/Pia/Documents/EDA_Player_new/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/EDA_Player_new_autogen/moc_predefs.h \
-  C:/Users/Pia/Documents/EDA_Player_new/metadata.h \
   C:/Users/Pia/Documents/EDA_Player_new/playlist.h \
   C:/Users/Pia/Documents/EDA_Player_new/playlistmanager.h \
   C:/Users/Pia/Documents/EDA_Player_new/queue.h \

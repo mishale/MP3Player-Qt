@@ -36,8 +36,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->playlists->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->songList->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    initPlayer();
+    qDebug() << "Test";
 
+    initPlayer();
     connect(ui->selectDirButton, &QPushButton::clicked, this, &MainWindow::selectDirectory);
     connect(ui->songList, &QListWidget::itemDoubleClicked, this, &MainWindow::startSong);
     connect(ui->playlists, &QListWidget::itemClicked, this, &MainWindow::showPlaylist);
