@@ -8,8 +8,6 @@ Playlist::Playlist(const QString& name)
 
 QList<Song*> Playlist::getSongs() const
 {
-    qDebug() << "getSongs aufgerufen";
-    qDebug() << songs;
     return songs;
 }
 
@@ -25,9 +23,7 @@ void Playlist::changeName(const QString& newName)
 
 void Playlist::addSong(Song* song)
 {
-    qDebug() << "addSong aufgerufen " << song->getFilePath();
     songs.append(song);
-    qDebug() << songs;
 }
 
 void Playlist::deleteSong(Song* song)

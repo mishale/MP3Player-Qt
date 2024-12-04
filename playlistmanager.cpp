@@ -8,16 +8,6 @@ QList<Playlist*> PlaylistManager::getPlaylists()
     return playlists;
 }
 
-void PlaylistManager::createPlaylist(const Playlist &playlist)
-{
-    //playlists.addItem(playlist.getName());
-    //verticalLayout->addWidget(ui->nameInput);
-    //verticalLayout->addWidget(ui->createButton);
-}
-/*Playlist PlaylistManager::setPlaylist() const
-{
-}
-*/
 void PlaylistManager::addPlaylist(Playlist* playlist)
 {
     playlists.append(playlist);

@@ -82,38 +82,9 @@ void MainWindow::selectDirectory()
         bibliothek->addSong(song);
         queue->addSong(song);
         displayMetaData(song);
-/*        connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [this, &song, fileName](QMediaPlayer::MediaStatus status) {
-            if (status == QMediaPlayer::LoadedMedia) {
-                QList<QString> metaList = song->getMetaData(mediaPlayer->metaData());
-                if(metaList.at(0) == "")
-                {
-                    ui->songList->addItem("Kein Titel vorhanden " + fileName);
-                }
-                else
-                {
-                    ui->songList->addItem(metaList.at(0));
-                }
-            }
-        });
-*/
     }
 }
 
-void MainWindow::searchMP3Files(const QString &directoryPath)
-{
-    QDir dir(directoryPath);
-
-    QStringList filters;
-    filters << "*.mp3";
-    dir.setNameFilters(filters);
-
-    QFileInfoList fileList = dir.entryInfoList(QDir::Files);
-
-/*    for (const QFileInfo &fileInfo : fileList) {
-        ui->songList->addItem(fileInfo.fileName());
-    }
-*/
-}
 
 void MainWindow::displayPlaylist(Playlist* playlist)
 {
@@ -236,7 +207,6 @@ void MainWindow::showContextMenuSongs(const QPoint &pos)
         QAction *actionToPlaylist = new QAction(playlist->getName(), this);
         connect(actionToPlaylist, &QAction::triggered, this, [this, playlist]() {
             fromLibToPlaylist(playlist);
-            qDebug() << "zu" << playlist->getName() << "hinzugefügt";
         });
         subMenu->addAction(actionToPlaylist);
     }
@@ -327,17 +297,31 @@ void MainWindow::deletePlaylist()
 
 void MainWindow::deleteSong()
 {
+    Playlist* playlist;
+    if(!(ui->playlists->currentItem()))
+    {
+        playlist = bibliothek;
+    }
+    else
+    {
+        playlist = getPlaylistByGUI(ui->playlists->currentItem());
+    }
     QListWidgetItem *selectedItem = ui->songList->currentItem();
-    if (!selectedItem) {
-        qWarning() << "No item selected for deletion.";
-        return;
+    for (Song* s : playlist->getSongs())
+    {
+        if(s->getCachedMetaData().at(0) == selectedItem->text())
+        {
+            playlist->deleteSong(s);
+            delete ui->songList->takeItem(ui->songList->row(ui->songList->currentItem()));
+            displayPlaylist(playlist);
+            break;
+        }
     }
 }
 
 void MainWindow::printSongList() {
     for (int i = 0; i < ui->songList->count(); ++i) {
         QListWidgetItem* item = ui->songList->item(i);
-        qDebug() << item->text();
     }
     exportSongListToJson();
 }
