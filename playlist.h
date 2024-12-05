@@ -15,6 +15,7 @@ public:
     void deleteSong(Song* song);
     void changeName(const QString& newName);
     bool containsSong(Song* song);
+    void clearSongs();
     bool operator==(const Playlist& other) const {
         return this->name == other.name;
     }

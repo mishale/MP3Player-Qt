@@ -49,9 +49,7 @@ private:
     bool widgetsCreated;
     Playlist *bibliothek;
     Queue *queue;
-    //QList<Playlist*> playlists;
     PlaylistManager *allPlaylists;
-    Playlist *newPlaylist;
     void addClass(QWidget* widget, const QString& classToAdd);
     void removeClass(QWidget* widget, const QString& classToRemove);
     void displayPlaylist(Playlist* playlist);

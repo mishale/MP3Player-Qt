@@ -35,3 +35,9 @@ bool Playlist::containsSong(Song* song)
 {
     return songs.contains(song);
 }
+
+void Playlist::clearSongs()
+{
+    qDeleteAll(songs);
+    songs.clear();
+}

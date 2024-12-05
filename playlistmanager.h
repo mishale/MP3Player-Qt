@@ -13,6 +13,7 @@ public:
     void createPlaylist(const Playlist& playlist);
     void addPlaylist(Playlist* playlist);
     void deletePlaylist(Playlist* playlist);
+    Playlist* getPlaylistByName(QString name);
 
 private:
 

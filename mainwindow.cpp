@@ -31,7 +31,6 @@ MainWindow::MainWindow(QWidget *parent)
     widgetsCreated = false;
     bibliothek = new Playlist("Bibliothek");
     allPlaylists = new PlaylistManager();
-    newPlaylist = new Playlist("");
     queue = new Queue();
     ui->playlists->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->songList->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -73,7 +72,10 @@ void MainWindow::selectDirectory()
     if (ui->playlists->findItems("Bibliothek", Qt::MatchExactly).isEmpty())
     {
         ui->playlists->addItem(bibliothek->getName());
-        allPlaylists->addPlaylist(bibliothek);
+        if(allPlaylists->getPlaylistByName("Bibliothek") == nullptr)
+        {
+            allPlaylists->addPlaylist(bibliothek);
+        }
     }
 
     if (!fileName.isEmpty())
@@ -81,6 +83,7 @@ void MainWindow::selectDirectory()
         Song* song = new Song(fileName);
         bibliothek->addSong(song);
         queue->addSong(song);
+        ui->playlists->setCurrentItem(ui->playlists->findItems("Bibliothek", Qt::MatchExactly).first());
         displayMetaData(song);
     }
 }
@@ -106,9 +109,12 @@ void MainWindow::displayMetaData(Song* song)
         if (status == QMediaPlayer::LoadedMedia) {
             QList<QString> metaList = song->getMetaData(mediaPlayer->metaData());
             ui->songList->addItem(metaList.at(0));
+            mediaPlayer->setSource(QUrl());
+            disconnect(mediaPlayer, nullptr, this, nullptr);
         }
     });
 }
+
 void MainWindow::startSong(QListWidgetItem *item)
 {
     QString filePath = item->text();
@@ -118,6 +124,7 @@ void MainWindow::startSong(QListWidgetItem *item)
             {
                 queue->forwards();
                 Song* currentSong = queue->getCurrentSong();
+
                 mediaPlayer->setSource(currentSong->getFilePath());
                 mediaPlayer->play();
             });
@@ -167,9 +174,9 @@ void MainWindow::createPlaylistUI()
         ui->leftVerticalLayout->addWidget(createButton);
         widgetsCreated = true;
         connect(createButton, &QPushButton::clicked, this, [=]() {
-            newPlaylist->changeName(nameInput->text());
-            ui->playlists->addItem(newPlaylist->getName());
-            allPlaylists->addPlaylist(newPlaylist);
+            Playlist* p = new Playlist(nameInput->text());
+            ui->playlists->addItem(p->getName());
+            allPlaylists->addPlaylist(p);
             delete nameInput;
             delete createButton;
             widgetsCreated = false;
@@ -216,12 +223,13 @@ void MainWindow::showContextMenuSongs(const QPoint &pos)
 
 void MainWindow::fromLibToPlaylist(Playlist* playlist)
 {
-    QListWidgetItem *selectedItem = ui->songList->currentItem();
-    QString filePath = selectedItem->text();
-    QList<Song*> allSongs = playlist->getSongs();
+    QString songToAdd = ui->songList->currentItem()->text();
+    Playlist* fromPlaylist = getPlaylistByGUI(ui->playlists->currentItem());
+    QList<Song*> allSongs = bibliothek->getSongs();
     for(Song* s : allSongs)
     {
-        if(s->getFilePath() == filePath)
+        QList<QString> metaList = s->getCachedMetaData();
+        if(metaList.at(0) == songToAdd)
         {
             playlist->addSong(s);
         }
@@ -289,7 +297,14 @@ Song* MainWindow::getSongByGUI(QListWidgetItem *selectedItem)
 void MainWindow::deletePlaylist()
 {
     Playlist* playlist = getPlaylistByGUI(ui->playlists->currentItem());
-    allPlaylists->deletePlaylist(playlist);
+    if(playlist->getName() == "Bibliothek")
+    {
+        playlist->clearSongs();
+    }
+    else
+    {
+        allPlaylists->deletePlaylist(playlist);
+    }
     ui->songList->clear();
     delete ui->playlists->takeItem(ui->playlists->row(ui->playlists->currentItem()));
 
@@ -313,6 +328,7 @@ void MainWindow::deleteSong()
         {
             playlist->deleteSong(s);
             delete ui->songList->takeItem(ui->songList->row(ui->songList->currentItem()));
+            disconnect(mediaPlayer, nullptr, this, nullptr);
             displayPlaylist(playlist);
             break;
         }

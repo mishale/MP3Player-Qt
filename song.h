@@ -15,12 +15,13 @@ public:
     bool operator==(const Song& other) const {
         return this->filePath == other.filePath;
     }
+    bool metaDataLoaded = false;
 
 private:
 
     QString filePath;
     QList<QString> metaList;
-    bool metaDataLoaded = false;
+
 
 
 };
