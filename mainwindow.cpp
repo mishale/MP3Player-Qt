@@ -16,6 +16,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QFile>
+#include <QLabel>
 #include <QTextStream>
 #include <QMediaMetaData>
 
@@ -47,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::showContextMenuSongs);
     connect(ui->saveButton, &QPushButton::clicked, this, &MainWindow::printSongList);
     connect(ui->volumeSlider, &QSlider::valueChanged, this, &MainWindow::changeVolume);
+    //connect(ui->loopSongBtn, &QPushButton::toggle, this, &MainWindow::loopSong);
     addClass(ui->prevButton, "soundControlButton");
     addClass(ui->pauseButton, "soundControlButton");
     addClass(ui->nextButton, "soundControlButton");
@@ -84,7 +86,7 @@ void MainWindow::selectDirectory()
         bibliothek->addSong(song);
         queue->addSong(song);
         ui->playlists->setCurrentItem(ui->playlists->findItems("Bibliothek", Qt::MatchExactly).first());
-        displayMetaData(song);
+        catchMetaData(song);
     }
 }
 
@@ -101,7 +103,7 @@ void MainWindow::displayPlaylist(Playlist* playlist)
 
 }
 
-void MainWindow::displayMetaData(Song* song)
+void MainWindow::catchMetaData(Song* song)
 {
     QString fileName = song->getFilePath();
     mediaPlayer->setSource(fileName);
@@ -115,16 +117,23 @@ void MainWindow::displayMetaData(Song* song)
     });
 }
 
+void MainWindow::displayMetaData(Song* song)
+{
+    QList<QString> metaList = song->getCachedMetaData();
+    ui->songMeta->setText(metaList.at(0));
+}
+
 void MainWindow::startSong(QListWidgetItem *item)
 {
-    QString filePath = item->text();
-    mediaPlayer->setSource(QUrl::fromLocalFile(filePath));
+    Song* song = getSongByGUI(item);
+    mediaPlayer->setSource(song->getFilePath());
+    displayMetaData(song);
     mediaPlayer->play();
     connect(ui->nextButton, QPushButton::clicked, this, [=]()
             {
                 queue->forwards();
                 Song* currentSong = queue->getCurrentSong();
-
+                displayMetaData(currentSong);
                 mediaPlayer->setSource(currentSong->getFilePath());
                 mediaPlayer->play();
             });
@@ -133,7 +142,7 @@ void MainWindow::startSong(QListWidgetItem *item)
             {
                 queue->backwards();
                 Song* currentSong = queue->getCurrentSong();
-
+                displayMetaData(currentSong);
                 mediaPlayer->setSource(currentSong->getFilePath());
                 mediaPlayer->play();
             });
@@ -273,27 +282,37 @@ Playlist* MainWindow::getPlaylistByGUI(QListWidgetItem *selectedItem)
 
     }
 }
+
 /*
+ * void MainWindow::loopSong(Song* song)
+{
+    mediaPlayer->setLoops(QMediaPlayer::Infinite);
+}
+*/
+
 Song* MainWindow::getSongByGUI(QListWidgetItem *selectedItem)
 {
     if (!selectedItem) {
         qWarning() << "No item selected.";
-        return;
+        return nullptr;
     }
     else
     {
-        QString filePath = selectedItem->text();
-        for (Song* s : allPlaylists->getPlaylists())
+        Playlist* p = allPlaylists->getPlaylistByName(ui->playlists->currentItem()->text());
+        QString songText = selectedItem->text();
+        qDebug() << "Item text:  " << songText;
+        for(Song* s : p->getSongs())
         {
-            if(s->getFilePath() == filePath)
+            QList<QString> metaList = s->getCachedMetaData();
+            if(metaList.at(0) == songText)
             {
                 return s;
             }
         }
-
+        return nullptr;
     }
 }
-*/
+
 void MainWindow::deletePlaylist()
 {
     Playlist* playlist = getPlaylistByGUI(ui->playlists->currentItem());

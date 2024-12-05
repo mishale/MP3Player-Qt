@@ -52,6 +52,7 @@ C:/Users/Pia/Documents/EDA_Player_new/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/
   D:/Qt/6.8.0/mingw_64/include/QtCore/qglobalstatic.h \
   D:/Qt/6.8.0/mingw_64/include/QtCore/qhash.h \
   D:/Qt/6.8.0/mingw_64/include/QtCore/qhashfunctions.h \
+  D:/Qt/6.8.0/mingw_64/include/QtCore/qiodevice.h \
   D:/Qt/6.8.0/mingw_64/include/QtCore/qiodevicebase.h \
   D:/Qt/6.8.0/mingw_64/include/QtCore/qitemselectionmodel.h \
   D:/Qt/6.8.0/mingw_64/include/QtCore/qiterable.h \
@@ -144,12 +145,14 @@ C:/Users/Pia/Documents/EDA_Player_new/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/
   D:/Qt/6.8.0/mingw_64/include/QtGui/qkeysequence.h \
   D:/Qt/6.8.0/mingw_64/include/QtGui/qpaintdevice.h \
   D:/Qt/6.8.0/mingw_64/include/QtGui/qpalette.h \
+  D:/Qt/6.8.0/mingw_64/include/QtGui/qpicture.h \
   D:/Qt/6.8.0/mingw_64/include/QtGui/qpixelformat.h \
   D:/Qt/6.8.0/mingw_64/include/QtGui/qpixmap.h \
   D:/Qt/6.8.0/mingw_64/include/QtGui/qpolygon.h \
   D:/Qt/6.8.0/mingw_64/include/QtGui/qregion.h \
   D:/Qt/6.8.0/mingw_64/include/QtGui/qrgb.h \
   D:/Qt/6.8.0/mingw_64/include/QtGui/qrgba64.h \
+  D:/Qt/6.8.0/mingw_64/include/QtGui/qtextdocument.h \
   D:/Qt/6.8.0/mingw_64/include/QtGui/qtgui-config.h \
   D:/Qt/6.8.0/mingw_64/include/QtGui/qtguiexports.h \
   D:/Qt/6.8.0/mingw_64/include/QtGui/qtguiglobal.h \
@@ -168,6 +171,7 @@ C:/Users/Pia/Documents/EDA_Player_new/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/
   D:/Qt/6.8.0/mingw_64/include/QtMultimedia/qtmultimedia-config.h \
   D:/Qt/6.8.0/mingw_64/include/QtMultimedia/qtmultimediaexports.h \
   D:/Qt/6.8.0/mingw_64/include/QtMultimedia/qtmultimediaglobal.h \
+  D:/Qt/6.8.0/mingw_64/include/QtWidgets/QLabel \
   D:/Qt/6.8.0/mingw_64/include/QtWidgets/QListWidgetItem \
   D:/Qt/6.8.0/mingw_64/include/QtWidgets/QMainWindow \
   D:/Qt/6.8.0/mingw_64/include/QtWidgets/QVBoxLayout \
@@ -179,6 +183,7 @@ C:/Users/Pia/Documents/EDA_Player_new/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/
   D:/Qt/6.8.0/mingw_64/include/QtWidgets/qboxlayout.h \
   D:/Qt/6.8.0/mingw_64/include/QtWidgets/qframe.h \
   D:/Qt/6.8.0/mingw_64/include/QtWidgets/qgridlayout.h \
+  D:/Qt/6.8.0/mingw_64/include/QtWidgets/qlabel.h \
   D:/Qt/6.8.0/mingw_64/include/QtWidgets/qlayout.h \
   D:/Qt/6.8.0/mingw_64/include/QtWidgets/qlayoutitem.h \
   D:/Qt/6.8.0/mingw_64/include/QtWidgets/qlistview.h \

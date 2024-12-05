@@ -4,6 +4,7 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <QVBoxLayout>
+#include <QLabel>
 #include "playlistmanager.h"
 #include "queue.h"
 
@@ -39,6 +40,8 @@ private slots:
     void deleteSong(); // Song aus Playlist löschen
     void changeVolume(int value); // Ändern der Lautstärke
     void fromLibToPlaylist(Playlist* playlist);
+    void displayMetaData(Song* song);
+    //void loopSong(Song* song);
 
 private:
     Ui::MainWindow *ui;
@@ -46,6 +49,7 @@ private:
     QMediaPlayer *mediaPlayer;
     QAudioOutput *audioOutput;
     QVBoxLayout *verticalLayout;
+    QLabel *songMeta;
     bool widgetsCreated;
     Playlist *bibliothek;
     Queue *queue;
@@ -53,8 +57,9 @@ private:
     void addClass(QWidget* widget, const QString& classToAdd);
     void removeClass(QWidget* widget, const QString& classToRemove);
     void displayPlaylist(Playlist* playlist);
-    void displayMetaData(Song* song);
+    void catchMetaData(Song* song);
     Playlist* getPlaylistByGUI(QListWidgetItem *selectedItem);
+    Song* getSongByGUI(QListWidgetItem *selectedItem);
 
 };
 #endif // MAINWINDOW_H
