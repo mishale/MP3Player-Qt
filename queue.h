@@ -23,11 +23,12 @@ public:
     ~Queue();
 
     void addSong(Song* song);
-    void addPlaylist(const Playlist& playlist);
     void forwards();
     void backwards();
     Song* getCurrentSong() const;
     void clear();
+    bool isAtStart() const;
+    bool isAtEnd() const;
 };
 
 #endif // QUEUE_H

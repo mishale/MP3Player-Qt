@@ -24,10 +24,6 @@ void Queue::addSong(Song* song) {
     }
 }
 
-void Queue::addPlaylist(const Playlist& playlist)
-{
-
-}
 void Queue::forwards()
 {
     if (current != nullptr && current->next != nullptr) {
@@ -53,6 +49,16 @@ Song* Queue::getCurrentSong() const
     } else {
         throw std::runtime_error("Die Queue ist leer.");
     }
+}
+
+bool Queue::isAtStart() const
+{
+    return current == head;
+}
+
+bool Queue::isAtEnd() const
+{
+    return current == tail;
 }
 
 void Queue::clear()
