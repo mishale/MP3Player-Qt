@@ -27,6 +27,7 @@ public:
     void forwards();
     void backwards();
     Song* getCurrentSong() const;
+    void clear();
 };
 
 #endif // QUEUE_H

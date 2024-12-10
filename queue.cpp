@@ -54,3 +54,17 @@ Song* Queue::getCurrentSong() const
         throw std::runtime_error("Die Queue ist leer.");
     }
 }
+
+void Queue::clear()
+{
+    Node* temp = head;
+    while (temp) {
+        Node* toDelete = temp;
+        temp = temp->next;
+        delete toDelete;
+    }
+
+    head = nullptr;
+    tail = nullptr;
+    current = nullptr;
+}

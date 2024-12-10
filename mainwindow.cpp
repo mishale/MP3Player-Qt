@@ -19,6 +19,7 @@
 #include <QLabel>
 #include <QTextStream>
 #include <QMediaMetaData>
+#include <QFontDatabase>
 
 
 
@@ -29,6 +30,25 @@ MainWindow::MainWindow(QWidget *parent)
     , audioOutput(new QAudioOutput(this))
 {
     ui->setupUi(this);
+
+    QFontDatabase::addApplicationFont(":/fonts/Gilroy-Heavy.ttf");
+    QFontDatabase::addApplicationFont(":/fonts/Gilroy-Bold.ttf");
+    QFontDatabase::addApplicationFont(":/fonts/Gilroy-Medium.ttf");
+    QFontDatabase::addApplicationFont(":/fonts/Gilroy-Regular.ttf");
+    QFontDatabase::addApplicationFont(":/fonts/Gilroy-Light.ttf");
+
+
+    QStringList stylesheetFiles = {
+        ":/styles/QMainWindow.qss",
+        ":/styles/QLabel.qss",
+        ":/styles/QListWidget.qss",
+        ":/styles/QPushButton.qss",
+        ":/styles/QToolButton.qss",
+        ":/styles/QSlider.qss"
+    };
+
+    loadCombinedStylesheet(stylesheetFiles);
+
     widgetsCreated = false;
     bibliothek = new Playlist("Bibliothek");
     allPlaylists = new PlaylistManager();
@@ -48,10 +68,21 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::showContextMenuSongs);
     connect(ui->saveButton, &QPushButton::clicked, this, &MainWindow::printSongList);
     connect(ui->volumeSlider, &QSlider::valueChanged, this, &MainWindow::changeVolume);
-    //connect(ui->loopSongBtn, &QPushButton::toggle, this, &MainWindow::loopSong);
+    connect(ui->loopSongBtn, &QPushButton::clicked, this, &MainWindow::loopSong);
+
     addClass(ui->prevButton, "soundControlButton");
     addClass(ui->pauseButton, "soundControlButton");
     addClass(ui->nextButton, "soundControlButton");
+    addClass(ui->progressBar, "progressBar");
+
+    addClass(ui->songTitle, "SongName");
+    addClass(ui->songAuthor, "SongInterpret");
+
+    ui->pauseButton->setIcon(QIcon(":/icons/pause.png"));
+    addClass(ui->pauseButton, "pauseButton");
+
+    ui->loopSongBtn->setIcon(QIcon(":/icons/playlist-loop.png"));
+    ui->shuffleButton->setIcon(QIcon(":/icons/shuffle.png"));
 }
 
 MainWindow::~MainWindow()
@@ -59,11 +90,30 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::loadCombinedStylesheet(const QStringList &stylesheetFiles) {
+    QString combinedStylesheet;
+    foreach (const QString &path, stylesheetFiles) {
+        QFile file(path);
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QTextStream in(&file);
+            combinedStylesheet += in.readAll() + "\n";  // Kombiniere die Inhalte
+            file.close();
+        } else {
+            qDebug() << "Cannot open stylesheet file:" << path;
+        }
+    }
+
+    this->setStyleSheet(combinedStylesheet);  // Setze das kombinierte Stylesheet
+}
+
 void MainWindow::initPlayer()
 {
     mediaPlayer->setAudioOutput(audioOutput);
     audioOutput->setVolume(1);
     ui->volumeSlider->setRange(0,100);
+    connect(mediaPlayer, &QMediaPlayer::positionChanged, this, &MainWindow::updateSliderPosition);
+    connect(mediaPlayer, &QMediaPlayer::durationChanged, this, &MainWindow::updateSliderRange);
+    connect(ui->progressBar, &QSlider::sliderMoved, this, &MainWindow::setSongPosition);
 }
 
 void MainWindow::selectDirectory()
@@ -84,7 +134,7 @@ void MainWindow::selectDirectory()
     {
         Song* song = new Song(fileName);
         bibliothek->addSong(song);
-        queue->addSong(song);
+        //queue->addSong(song);
         ui->playlists->setCurrentItem(ui->playlists->findItems("Bibliothek", Qt::MatchExactly).first());
         catchMetaData(song);
     }
@@ -119,32 +169,79 @@ void MainWindow::catchMetaData(Song* song)
 
 void MainWindow::displayMetaData(Song* song)
 {
-    QList<QString> metaList = song->getCachedMetaData();
-    ui->songMeta->setText(metaList.at(0));
+    // QList<QString> metaList = song->getCachedMetaData();
+    ui->songTitle->setText(song->getTitle());
+    ui->songAuthor->setText(song->getAuthor());
 }
 
+void MainWindow::buildQueue(Song* song, Playlist* playlist)
+{
+    queue->clear();
+    for(Song* s : playlist->getSongs())
+    {
+        queue->addSong(s);
+    }
+    while(queue->getCurrentSong() != song && queue->getCurrentSong() != nullptr)
+    {
+        queue->forwards();
+    }
+    /*
+     * QList<Song*> allSongs = playlist->getSongs();
+    int index = allSongs.indexOf(song);
+    if (index == -1) {
+        qDebug() << "Song wurde in der Playlist nicht gefunden.";
+    }
+    for(int i = index; i<allSongs.size(); i++)
+    {
+        queue->addSong(allSongs.at(i));
+    }
+    */
+}
 void MainWindow::startSong(QListWidgetItem *item)
 {
     Song* song = getSongByGUI(item);
-    mediaPlayer->setSource(song->getFilePath());
+    Playlist* playlist = getPlaylistByGUI(ui->playlists->currentItem());
+
+    buildQueue(song, playlist);
+    mediaPlayer->setSource(queue->getCurrentSong()->getFilePath());
     displayMetaData(song);
     mediaPlayer->play();
-    connect(ui->nextButton, QPushButton::clicked, this, [=]()
+
+    ui->pauseButton->setIcon(QIcon(":/icons/play.png"));
+    removeClass(ui->pauseButton, "pauseButton");
+    addClass(ui->pauseButton, "playButton");
+
+    connect(mediaPlayer, &QMediaPlayer::positionChanged, this, &MainWindow::handleSongFinish);
+    connect(ui->nextButton, &QPushButton::clicked, this, [=]()
             {
-                queue->forwards();
-                Song* currentSong = queue->getCurrentSong();
-                displayMetaData(currentSong);
-                mediaPlayer->setSource(currentSong->getFilePath());
-                mediaPlayer->play();
+                if(!isSongLooped)
+                {
+                    queue->forwards();
+                    displayMetaData(queue->getCurrentSong());
+                    mediaPlayer->setSource(queue->getCurrentSong()->getFilePath());
+                    mediaPlayer->play();
+                }
+                else
+                {
+                    mediaPlayer->setPosition(0);
+                    mediaPlayer->play();
+                }
             });
 
-    connect(ui->prevButton, QPushButton::clicked, this, [=]()
+    connect(ui->prevButton, &QPushButton::clicked, this, [=]()
             {
-                queue->backwards();
-                Song* currentSong = queue->getCurrentSong();
-                displayMetaData(currentSong);
-                mediaPlayer->setSource(currentSong->getFilePath());
-                mediaPlayer->play();
+                if(!isSongLooped)
+                {
+                    queue->backwards();
+                    displayMetaData(queue->getCurrentSong());
+                    mediaPlayer->setSource(queue->getCurrentSong()->getFilePath());
+                    mediaPlayer->play();
+                }
+                else
+                {
+                    mediaPlayer->setPosition(0);
+                    mediaPlayer->play();
+                }
             });
 }
 
@@ -158,17 +255,17 @@ void MainWindow::pause()
     if(mediaPlayer->isPlaying())
     {
         mediaPlayer->pause();
-        ui->pauseButton->setIcon(QIcon(":/icons/play.png"));
-        removeClass(ui->pauseButton, "pauseButton");
-        addClass(ui->pauseButton, "playButton");
+        ui->pauseButton->setIcon(QIcon(":/icons/pause.png"));
+        removeClass(ui->pauseButton, "playButton");
+        addClass(ui->pauseButton, "pauseButton");
 
     }
     else
     {
         mediaPlayer->play();
-        ui->pauseButton->setIcon(QIcon(":/icons/pause.png"));
-        removeClass(ui->pauseButton, "playButton");
-        addClass(ui->pauseButton, "pauseButton");
+        ui->pauseButton->setIcon(QIcon(":/icons/play.png"));
+        removeClass(ui->pauseButton, "pauseButton");
+        addClass(ui->pauseButton, "playButton");
     }
 }
 
@@ -234,13 +331,19 @@ void MainWindow::fromLibToPlaylist(Playlist* playlist)
 {
     QString songToAdd = ui->songList->currentItem()->text();
     Playlist* fromPlaylist = getPlaylistByGUI(ui->playlists->currentItem());
-    QList<Song*> allSongs = bibliothek->getSongs();
+    QList<Song*> allSongs = fromPlaylist->getSongs();
     for(Song* s : allSongs)
     {
         QList<QString> metaList = s->getCachedMetaData();
         if(metaList.at(0) == songToAdd)
         {
             playlist->addSong(s);
+            /*
+            if(ui->playlists->currentItem()->text() == playlist->getName())
+            {
+                buildQueue(queue->getCurrentSong(), p);
+            }
+            */
         }
     }
 }
@@ -257,6 +360,7 @@ void MainWindow::addSongToPlaylist()
             Song* song = new Song(fileName);
             ui->songList->addItem(song->getFilePath());
             p->addSong(song);
+            buildQueue(queue->getCurrentSong(), p);
             displayPlaylist(p);
         }
     }
@@ -275,6 +379,7 @@ Playlist* MainWindow::getPlaylistByGUI(QListWidgetItem *selectedItem)
         {
             if(p->getName() == playlistName)
             {
+                qDebug() << p->getName();
                 return p;
             }
         }
@@ -283,33 +388,66 @@ Playlist* MainWindow::getPlaylistByGUI(QListWidgetItem *selectedItem)
     }
 }
 
-/*
- * void MainWindow::loopSong(Song* song)
+
+void MainWindow::loopSong()
 {
-    mediaPlayer->setLoops(QMediaPlayer::Infinite);
+    isSongLooped = !isSongLooped;
+    if(isSongLooped)
+    {
+        mediaPlayer->setLoops(QMediaPlayer::Infinite);
+        ui->loopSongBtn->setStyleSheet("background-color: green;");
+    }
+    else
+    {
+        mediaPlayer->setLoops(1);
+        ui->loopSongBtn->setStyleSheet("");
+    }
 }
-*/
+
 
 Song* MainWindow::getSongByGUI(QListWidgetItem *selectedItem)
 {
     if (!selectedItem) {
-        qWarning() << "No item selected.";
         return nullptr;
     }
     else
     {
         Playlist* p = allPlaylists->getPlaylistByName(ui->playlists->currentItem()->text());
         QString songText = selectedItem->text();
-        qDebug() << "Item text:  " << songText;
         for(Song* s : p->getSongs())
         {
             QList<QString> metaList = s->getCachedMetaData();
             if(metaList.at(0) == songText)
             {
+                qDebug() << s->getFilePath();
                 return s;
             }
         }
         return nullptr;
+    }
+}
+
+void MainWindow::handleSongFinish(qint64 position)
+{
+    qint64 duration = mediaPlayer->duration();
+    if(duration > 0 && position >= duration && ui->songList->count() > 1)
+    {
+        qDebug() << "Song has reached its end.";
+        if (isSongLooped)
+        {
+            mediaPlayer->setPosition(0);
+            mediaPlayer->play();
+        } else
+        {
+            queue->forwards();
+            Song* currentSong = queue->getCurrentSong();
+            if(currentSong)
+            {
+                displayMetaData(currentSong);
+                mediaPlayer->setSource(currentSong->getFilePath());
+                mediaPlayer->play();
+            }
+        }
     }
 }
 
@@ -348,10 +486,27 @@ void MainWindow::deleteSong()
             playlist->deleteSong(s);
             delete ui->songList->takeItem(ui->songList->row(ui->songList->currentItem()));
             disconnect(mediaPlayer, nullptr, this, nullptr);
+            buildQueue(queue->getCurrentSong(), playlist);
             displayPlaylist(playlist);
             break;
         }
     }
+}
+
+void MainWindow::updateSliderPosition(qint64 position)
+{
+    ui->progressBar->setValue(static_cast<int>(position));
+}
+
+void MainWindow::setSongPosition(int position)
+{
+    qDebug() << "position changed";
+    mediaPlayer->setPosition(static_cast<qint64>(position));
+}
+
+void MainWindow::updateSliderRange(qint64 duration)
+{
+    ui->progressBar->setRange(0, static_cast<int>(duration));
 }
 
 void MainWindow::printSongList() {
@@ -414,4 +569,3 @@ void MainWindow::changeVolume(int value)
     double volume = pow(value / 100.0, 2);
     audioOutput->setVolume(volume);
 }
-

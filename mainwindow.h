@@ -41,9 +41,15 @@ private slots:
     void changeVolume(int value); // Ändern der Lautstärke
     void fromLibToPlaylist(Playlist* playlist);
     void displayMetaData(Song* song);
-    //void loopSong(Song* song);
+    void loopSong();
+    void handleSongFinish(qint64 position);
+    void updateSliderPosition(qint64 position); // Aktualisiert den Slider, wenn die Songposition sich ändert
+    void setSongPosition(int position); // Setzt die Songposition, wenn der Slider bewegt wird
+    void updateSliderRange(qint64 duration); // Aktualisiert den Sliderbereich, wenn ein neuer Song geladen wird
+
 
 private:
+    void loadCombinedStylesheet(const QStringList &stylesheetFiles);
     Ui::MainWindow *ui;
     void searchMP3Files(const QString &directoryPath); // MP3-Suche
     QMediaPlayer *mediaPlayer;
@@ -53,6 +59,7 @@ private:
     bool widgetsCreated;
     Playlist *bibliothek;
     Queue *queue;
+    bool isSongLooped = false;
     PlaylistManager *allPlaylists;
     void addClass(QWidget* widget, const QString& classToAdd);
     void removeClass(QWidget* widget, const QString& classToRemove);
@@ -60,7 +67,7 @@ private:
     void catchMetaData(Song* song);
     Playlist* getPlaylistByGUI(QListWidgetItem *selectedItem);
     Song* getSongByGUI(QListWidgetItem *selectedItem);
-
+    void buildQueue(Song* song, Playlist* playlist);
 };
 #endif // MAINWINDOW_H
 

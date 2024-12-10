@@ -12,6 +12,10 @@ public:
     QString getFilePath() const;
     QList<QString> getMetaData(const QMediaMetaData& metaData);
     QList<QString> getCachedMetaData() const;
+    QString getTitle() const;
+    QString getAuthor() const;
+    QString getDuration() const;
+    QString getDate() const;
     bool operator==(const Song& other) const {
         return this->filePath == other.filePath;
     }

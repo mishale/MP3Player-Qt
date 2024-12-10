@@ -1,0 +1,76 @@
+QSlider {
+}
+
+/* Groove: Slider Spur */
+QSlider::groove:horizontal {
+    border: 1px solid #999999;
+    background: #E0E0E0;
+    height: 2px;
+    border-radius: 4px;
+}
+
+/* Groove: Ding zum Sliden */
+QSlider::handle:horizontal {
+    background: #B2B2B2;
+    border: 1px solid #B2B2B2;
+    width: 5px;
+    height: 20px;
+    margin: -6px 0;
+    border-radius: 2px;
+}
+
+QSlider::handle:horizontal:hover {
+    background: #5B5C5D;
+    border: 1px solid #5B5C5D;
+}
+
+/* Add-page: rechte Seite vom Slider */
+QSlider::add-page:horizontal {
+    background: #E0E0E0;
+    border-radius: 4px;
+}
+
+/* Add-page: linke Seite vom Slider */
+QSlider::sub-page:horizontal {
+    background: #B2B2B2;
+    border-radius: 4px;
+}
+
+
+QSlider.progressBar {
+}
+
+/* Groove: Slider Spur */
+QSlider.progressBar::groove {
+    border: 1px solid #999999;
+    background: #E0E0E0;
+    height: 2px;
+    border-radius: 4px;
+}
+
+/* Groove: Ding zum Sliden */
+QSlider.progressBar::handle {
+    background: green;
+    border: 1px solid #B2B2B2;
+    width: 5px;
+    height: 20px;
+    margin: -6px 0;
+    border-radius: 2px;
+}
+
+QSlider.progressBar::handle:hover {
+    background: #5B5C5D;
+    border: 1px solid #5B5C5D;
+}
+
+/* Add-page: rechte Seite vom Slider */
+QSlider.progressBar::add-page {
+    background: #E0E0E0;
+    border-radius: 4px;
+}
+
+/* Add-page: linke Seite vom Slider */
+QSlider.progressBar::sub-page {
+    background: #B2B2B2;
+    border-radius: 4px;
+}

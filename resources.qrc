@@ -1,9 +1,22 @@
 <RCC>
     <qresource prefix="/">
-        <file>styles/QToolButton.qss</file>
         <file>icons/pause.png</file>
         <file>icons/play.png</file>
         <file>icons/backward.png</file>
         <file>icons/forward.png</file>
+        <file>fonts/Gilroy-Bold.ttf</file>
+        <file>fonts/Gilroy-Heavy.ttf</file>
+        <file>fonts/Gilroy-Light.ttf</file>
+        <file>fonts/Gilroy-Medium.ttf</file>
+        <file>fonts/Gilroy-Regular.ttf</file>
+        <file>styles/QMainWindow.qss</file>
+        <file>styles/QPushButton.qss</file>
+        <file>styles/QToolButton.qss</file>
+        <file>styles/QLabel.qss</file>
+        <file>styles/QListWidget.qss</file>
+        <file>styles/QSlider.qss</file>
+        <file>icons/playlist-loop.png</file>
+        <file>icons/shuffle.png</file>
+        <file>icons/song-loop.png</file>
     </qresource>
 </RCC>

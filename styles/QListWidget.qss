@@ -1,0 +1,8 @@
+QListWidget {
+        color: #2D2E2F;
+        background-color: #ffffff;
+        border: 1px solid #2D2E2F;
+        border-radius: 4px;
+        font-family: 'Gilroy-Heavy';
+        font-size: 14px;
+}

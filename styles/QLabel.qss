@@ -1,0 +1,15 @@
+QLabel {
+        color: #2D2E2F;
+}
+
+QLabel.SongName {
+    font-size: 16px;
+    qproperty-alignment: 'AlignCenter';
+    font-family: 'Gilroy-Heavy';
+}
+
+QLabel.SongInterpret {
+    font-size: 12px;
+    qproperty-alignment: 'AlignCenter';
+    font-family: 'Gilroy-Light';
+}
