@@ -36,7 +36,6 @@ private slots:
     void showContextMenuPlaylist(const QPoint &pos); // Kontext-Menü bei Rechtsklick
     void showContextMenuSongs(const QPoint &pos);
     void deletePlaylist(); // Playlist löschen
-    void addSongToPlaylist(); // Song zu einer Playlist hinzufügen
     void deleteSong(); // Song aus Playlist löschen
     void changeVolume(int value); // Ändern der Lautstärke
     void fromLibToPlaylist(Playlist* playlist);
@@ -48,6 +47,7 @@ private slots:
     void updateSliderRange(qint64 duration); // Aktualisiert den Sliderbereich, wenn ein neuer Song geladen wird
     void playNextSong();
     void playPrevSong();
+    void shuffle();
 
 
 private:
@@ -60,9 +60,11 @@ private:
     QLabel *songMeta;
     bool widgetsCreated;
     Playlist *bibliothek;
+    Playlist *currentPlaylist;
     Queue *queue;
     bool isSongLooped = false;
     bool isPlaylistLooped = false;
+    bool isShuffled = false;
     PlaylistManager *allPlaylists;
     void addClass(QWidget* widget, const QString& classToAdd);
     void removeClass(QWidget* widget, const QString& classToRemove);
@@ -71,6 +73,7 @@ private:
     Playlist* getPlaylistByGUI(QListWidgetItem *selectedItem);
     Song* getSongByGUI(QListWidgetItem *selectedItem);
     void buildQueue(Song* song, Playlist* playlist);
+    bool checkIfSongIsInPlaylist(QString filePath, Playlist* playlist);
 };
 #endif // MAINWINDOW_H
 

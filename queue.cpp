@@ -51,6 +51,16 @@ Song* Queue::getCurrentSong() const
     }
 }
 
+Song* Queue::getFirst() const
+{
+    return head->song;
+}
+
+Song* Queue::getLast() const
+{
+    return tail->song;
+}
+
 bool Queue::isAtStart() const
 {
     return current == head;

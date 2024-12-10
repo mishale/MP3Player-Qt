@@ -20,6 +20,8 @@
 #include <QTextStream>
 #include <QMediaMetaData>
 #include <QFontDatabase>
+#include <algorithm>
+#include <random>
 
 
 
@@ -51,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     widgetsCreated = false;
     bibliothek = new Playlist("Bibliothek");
+    currentPlaylist = bibliothek;
     allPlaylists = new PlaylistManager();
     queue = new Queue();
     ui->playlists->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -113,9 +116,24 @@ void MainWindow::initPlayer()
     ui->volumeSlider->setRange(0,100);
     connect(mediaPlayer, &QMediaPlayer::durationChanged, this, &MainWindow::updateSliderRange);
     connect(ui->progressBar, &QSlider::sliderMoved, this, &MainWindow::setSongPosition);
+    connect(ui->shuffleButton, QPushButton::clicked, this, &MainWindow::shuffle);
 }
 
-
+bool MainWindow::checkIfSongIsInPlaylist(QString filePath, Playlist* playlist)
+{
+    if(!playlist->getSongs().isEmpty())
+    {
+        for(Song* s : playlist->getSongs())
+        {
+            if(s->getFilePath() == filePath)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    return false;
+}
 void MainWindow::selectDirectory()
 {
 
@@ -129,15 +147,19 @@ void MainWindow::selectDirectory()
             allPlaylists->addPlaylist(bibliothek);
         }
     }
-
     if (!fileName.isEmpty())
     {
-        Song* song = new Song(fileName);
-        bibliothek->addSong(song);
-        //queue->addSong(song);
-        ui->playlists->setCurrentItem(ui->playlists->findItems("Bibliothek", Qt::MatchExactly).first());
-        catchMetaData(song);
-        //displayPlaylist(bibliothek);
+        if(checkIfSongIsInPlaylist(fileName, bibliothek))
+        {
+            qWarning() << "keine doppelten Songs in Playlist erlaubt";
+        }
+        else
+        {
+            Song* song = new Song(fileName);
+            bibliothek->addSong(song);
+            ui->playlists->setCurrentItem(ui->playlists->findItems("Bibliothek", Qt::MatchExactly).first());
+            catchMetaData(song);
+        }
     }
 }
 
@@ -146,10 +168,12 @@ void MainWindow::displayPlaylist(Playlist* playlist)
 {
     ui->songList->clear();
     QList<Song*> allSongs = playlist->getSongs();
-    for (Song* s : allSongs)
+    if(!allSongs.isEmpty())
     {
-        QList<QString> metaList = s->getCachedMetaData();
-        ui->songList->addItem(metaList.at(0));
+        for (Song* s : allSongs)
+        {
+            ui->songList->addItem(s->getTitle());
+        }
     }
 
 }
@@ -171,7 +195,6 @@ void MainWindow::catchMetaData(Song* song)
 
 void MainWindow::displayMetaData(Song* song)
 {
-    // QList<QString> metaList = song->getCachedMetaData();
     ui->songTitle->setText(song->getTitle());
     ui->songAuthor->setText(song->getAuthor());
 }
@@ -179,21 +202,26 @@ void MainWindow::displayMetaData(Song* song)
 void MainWindow::buildQueue(Song* song, Playlist* playlist)
 {
     queue->clear();
-    for(Song* s : playlist->getSongs())
+    currentPlaylist = playlist;
+    if(!currentPlaylist->getSongs().isEmpty())
     {
-        queue->addSong(s);
+        for(Song* s : currentPlaylist->getSongs())
+        {
+            queue->addSong(s);
+        }
+        while(queue->getCurrentSong() != song && queue->getCurrentSong() != nullptr)
+        {
+            queue->forwards();
+        }
     }
-    while(queue->getCurrentSong() != song && queue->getCurrentSong() != nullptr)
-    {
-        queue->forwards();
-    }
+
 }
 
 void MainWindow::startSong(QListWidgetItem *item)
 {
     Song* song = getSongByGUI(item);
     Playlist* playlist = getPlaylistByGUI(ui->playlists->currentItem());
-
+    currentPlaylist = playlist;
     buildQueue(song, playlist);
     mediaPlayer->setSource(queue->getCurrentSong()->getFilePath());
     displayMetaData(song);
@@ -244,12 +272,19 @@ void MainWindow::createPlaylistUI()
         ui->leftVerticalLayout->addWidget(createButton);
         widgetsCreated = true;
         connect(createButton, &QPushButton::clicked, this, [=]() {
-            Playlist* p = new Playlist(nameInput->text());
-            ui->playlists->addItem(p->getName());
-            allPlaylists->addPlaylist(p);
-            delete nameInput;
-            delete createButton;
-            widgetsCreated = false;
+            if(allPlaylists->getPlaylistByName(nameInput->text()) == nullptr)
+            {
+                Playlist* p = new Playlist(nameInput->text());
+                ui->playlists->addItem(p->getName());
+                allPlaylists->addPlaylist(p);
+                delete nameInput;
+                delete createButton;
+                widgetsCreated = false;
+            }
+            else
+            {
+                qWarning() << "Es exisitert bereits eine Playlist mit diesem Namen, bitte nimm einen anderen.";
+            }
         });
     }
 }
@@ -260,11 +295,7 @@ void MainWindow::showContextMenuPlaylist(const QPoint &pos)
     QAction *actionDeletePlaylist = new QAction("Playlist löschen", this);
     connect(actionDeletePlaylist, &QAction::triggered, this, &MainWindow::deletePlaylist);
 
-    QAction *actionAddSong = new QAction("Song hinzufügen", this);
-    connect(actionAddSong, &QAction::triggered, this, &MainWindow::addSongToPlaylist);
-
     contextMenu.addAction(actionDeletePlaylist);
-    contextMenu.addAction(actionAddSong);
 
     contextMenu.exec(ui->playlists->mapToGlobal(pos));
 }
@@ -295,34 +326,28 @@ void MainWindow::fromLibToPlaylist(Playlist* playlist)
 {
     QString songToAdd = ui->songList->currentItem()->text();
     Playlist* fromPlaylist = getPlaylistByGUI(ui->playlists->currentItem());
+    if(fromPlaylist == playlist)
+    {
+        qWarning() << "Start- und Zielplaylist dürfen nicht identisch sein";
+        return;
+    }
     QList<Song*> allSongs = fromPlaylist->getSongs();
     for(Song* s : allSongs)
     {
         if(s->getTitle() == songToAdd)
         {
-            playlist->addSong(s);
+            if(checkIfSongIsInPlaylist(s->getFilePath(), playlist))
+            {
+                qWarning() << "Song bereits in Playlist";
+            }
+            else
+            {
+                playlist->addSong(s);
+            }
         }
     }
 }
-void MainWindow::addSongToPlaylist()
-{
-    QListWidgetItem *selectedItem = ui->playlists->currentItem();
-    QString playlistName = selectedItem->text();
-    QList<Playlist*> everyPlaylist = allPlaylists->getPlaylists();
-    for (Playlist* p : everyPlaylist)
-    {
-        if(p->getName() == playlistName)
-        {
-            QString fileName = QFileDialog::getOpenFileName(this, "Wähle eine MP3-Datei aus", QString(), "MP3-Dateien (*.mp3)");
-            Song* song = new Song(fileName);
-            ui->songList->addItem(song->getFilePath());
-            p->addSong(song);
-            buildQueue(queue->getCurrentSong(), p);
-            displayPlaylist(p);
-        }
-    }
 
-}
 Playlist* MainWindow::getPlaylistByGUI(QListWidgetItem *selectedItem)
 {
     if (!selectedItem) {
@@ -336,15 +361,12 @@ Playlist* MainWindow::getPlaylistByGUI(QListWidgetItem *selectedItem)
         {
             if(p->getName() == playlistName)
             {
-                qDebug() << p->getName();
                 return p;
             }
         }
         return nullptr;
-
     }
 }
-
 
 void MainWindow::handleLoop()
 {
@@ -385,13 +407,37 @@ Song* MainWindow::getSongByGUI(QListWidgetItem *selectedItem)
         {
             if(s->getTitle() == songText)
             {
-                qDebug() << s->getFilePath();
                 return s;
             }
         }
         return nullptr;
     }
 }
+
+void MainWindow::shuffle()
+{
+    isShuffled = !isShuffled;
+    if(isShuffled)
+    {
+        ui->shuffleButton->setStyleSheet("background-color: green");
+        Playlist* tmpPlaylist = currentPlaylist;
+        std::random_device rd;
+        std::mt19937 g(rd());
+        if(currentPlaylist && !tmpPlaylist->getSongs().isEmpty())
+        {
+            auto songs = tmpPlaylist->getSongs();
+            std::vector<Song*> songVector(songs.begin(), songs.end());
+            std::shuffle(songVector.begin(), songVector.end(), g);
+            buildQueue(queue->getCurrentSong(), tmpPlaylist);
+        }
+    }
+    else
+    {
+        ui->shuffleButton->setStyleSheet("");
+        buildQueue(getSongByGUI(ui->songList->currentItem()), currentPlaylist);
+    }
+}
+
 void MainWindow::playNextSong()
 {
     if(!isSongLooped)
@@ -401,7 +447,18 @@ void MainWindow::playNextSong()
             queue->forwards();
             displayMetaData(queue->getCurrentSong());
             mediaPlayer->setSource(queue->getCurrentSong()->getFilePath());
+            //ui->songList->setCurrentItem();
             mediaPlayer->play();
+        }
+        else
+        {
+            if(isPlaylistLooped)
+            {
+                displayMetaData(queue->getFirst());
+                mediaPlayer->setSource(queue->getFirst()->getFilePath());
+                mediaPlayer->play();
+                buildQueue(queue->getFirst(),getPlaylistByGUI(ui->playlists->currentItem()));
+            }
         }
     }
     else
@@ -474,7 +531,14 @@ void MainWindow::deleteSong()
             playlist->deleteSong(s);
             delete ui->songList->takeItem(ui->songList->row(ui->songList->currentItem()));
             disconnect(mediaPlayer, nullptr, this, nullptr);
-            //buildQueue(queue->getCurrentSong(), playlist);
+            if(playlist->getSongs().isEmpty())
+            {
+                queue->clear();
+            }
+            else
+            {
+                buildQueue(queue->getCurrentSong(), playlist);
+            }
             displayPlaylist(playlist);
             break;
         }

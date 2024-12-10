@@ -77,7 +77,7 @@
            <item>
             <widget class="QPushButton" name="selectDirButton">
              <property name="text">
-              <string>Verzeichnis auswählen</string>
+              <string>Song zur Bibliothek hinzufügen</string>
              </property>
             </widget>
            </item>

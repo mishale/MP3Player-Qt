@@ -29,6 +29,8 @@ public:
     void clear();
     bool isAtStart() const;
     bool isAtEnd() const;
+    Song* getFirst() const;
+    Song* getLast() const;
 };
 
 #endif // QUEUE_H
