@@ -1,5 +1,5 @@
 QPushButton {
-        border-radius: 4px;
+        border-radius: 2px;
         background-color: #2D2E2F;
         color: #FFFFFF;
         font-family: 'Gilroy-Medium';

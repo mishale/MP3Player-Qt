@@ -15,8 +15,16 @@
         <file>styles/QLabel.qss</file>
         <file>styles/QListWidget.qss</file>
         <file>styles/QSlider.qss</file>
-        <file>icons/playlist-loop.png</file>
         <file>icons/shuffle.png</file>
         <file>icons/song-loop.png</file>
+        <file>icons/loop.png</file>
+        <file>icons/loop_gray.png</file>
+        <file>icons/loop_gray_dark.png</file>
+        <file>icons/undo-alt.png</file>
+        <file>icons/shuffle_gray_dark.png</file>
+        <file>songs/GimmeLove.mp3</file>
+        <file>songs/Mayberg - Endlos_demo.mp3</file>
+        <file>songs/SDP x Sido x Esther Graf - Mama hat gesagt (Live aus der Wuhlheide Berlin).mp3</file>
+        <file>songs/APT.mp3</file>
     </qresource>
 </RCC>

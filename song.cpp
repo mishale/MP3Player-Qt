@@ -2,7 +2,7 @@
 #include <QMediaMetaData>
 
 Song::Song(const QString& filePath)
-    : filePath(filePath), metaList(), metaDataLoaded(false){}
+    : filePath(filePath), metaList(), metaDataLoaded(false) {}
 
 QString Song::getFilePath() const
 {
@@ -11,33 +11,37 @@ QString Song::getFilePath() const
 
 QList<QString> Song::getMetaData(const QMediaMetaData& metaData)
 {
-    if(!metaDataLoaded)
+    if (!metaDataLoaded)
     {
         if (!metaData.isEmpty()) {
-            metaList.append(metaData.stringValue(QMediaMetaData::Title));
-            if(metaList.at(0) == "")
-            {
-                metaList[0] = "Titel nicht vorhanden " + filePath;
+            QString title = metaData.value(QMediaMetaData::Title).toString();
+            if (title.isEmpty()) {
+                metaList.append("Titel nicht vorhanden: " + filePath);
+            } else {
+                metaList.append(title);
             }
 
-            metaList.append(metaData.stringValue(QMediaMetaData::Author));
-            if(metaList.at(1) == "")
-            {
-                metaList[1] = "Interpret nicht vorhanden";
+            QStringList authors = metaData.value(QMediaMetaData::ContributingArtist).toStringList();
+            if (authors.isEmpty()) {
+                metaList.append("Interpret nicht vorhanden");
+            } else {
+                metaList.append(authors.join(", "));
             }
 
-            metaList.append(metaData.stringValue(QMediaMetaData::Duration));
-            if(metaList.at(2) == "")
-            {
-                metaList[2] = "Duration nicht vorhanden";
+            QVariant durationVar = metaData.value(QMediaMetaData::Duration);
+            QString duration = durationVar.isValid() ? durationVar.toString() : "";
+            if (duration.isEmpty()) {
+                metaList.append("Duration nicht vorhanden");
+            } else {
+                metaList.append(duration);
             }
 
-            metaList.append(metaData.stringValue(QMediaMetaData::Date));
-            if(metaList.at(3) == "")
-            {
-                metaList[3] = "Date nicht vorhanden";
+            QString date = metaData.value(QMediaMetaData::Date).toString();
+            if (date.isEmpty()) {
+                metaList.append("Date nicht vorhanden");
+            } else {
+                metaList.append(date);
             }
-
         }
         metaDataLoaded = true;
     }
@@ -51,20 +55,20 @@ QList<QString> Song::getCachedMetaData() const
 
 QString Song::getTitle() const
 {
-    return  metaList.at(0);
+    return metaList.size() > 0 ? metaList.at(0) : "";
 }
 
 QString Song::getAuthor() const
 {
-    return metaList.at(1);
+    return metaList.size() > 1 ? metaList.at(1) : "";
 }
 
 QString Song::getDuration() const
 {
-    return metaList.at(2);
+    return metaList.size() > 2 ? metaList.at(2) : "";
 }
 
 QString Song::getDate() const
 {
-    return metaList.at(3);
+    return metaList.size() > 3 ? metaList.at(3) : "";
 }

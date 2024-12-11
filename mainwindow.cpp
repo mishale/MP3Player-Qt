@@ -56,6 +56,9 @@ MainWindow::MainWindow(QWidget *parent)
     currentPlaylist = bibliothek;
     allPlaylists = new PlaylistManager();
     queue = new Queue();
+
+    importPlaylistsFromJson();
+
     ui->playlists->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->songList->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -69,23 +72,26 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::showContextMenuPlaylist);
     connect(ui->songList, &QListWidget::customContextMenuRequested,
             this, &MainWindow::showContextMenuSongs);
-    connect(ui->saveButton, &QPushButton::clicked, this, &MainWindow::printSongList);
     connect(ui->volumeSlider, &QSlider::valueChanged, this, &MainWindow::changeVolume);
     connect(ui->loopSongBtn, &QPushButton::clicked, this, &MainWindow::handleLoop);
 
+
+    addClass(ui->shuffleButton, "soundControlButton");
     addClass(ui->prevButton, "soundControlButton");
     addClass(ui->pauseButton, "soundControlButton");
     addClass(ui->nextButton, "soundControlButton");
+    addClass(ui->loopSongBtn, "soundControlButton");
+
     addClass(ui->progressBar, "progressBar");
 
     addClass(ui->songTitle, "SongName");
     addClass(ui->songAuthor, "SongInterpret");
 
-    ui->pauseButton->setIcon(QIcon(":/icons/play.png"));
-    addClass(ui->pauseButton, "playButton");
+    ui->pauseButton->setIcon(QIcon(":/icons/pause.png"));
+    addClass(ui->pauseButton, "pauseButton");
 
-    //ui->loopSongBtn->setIcon(QIcon(":/icons/playlist-loop.png"));
-    ui->shuffleButton->setIcon(QIcon(":/icons/shuffle.png"));
+    ui->loopSongBtn->setIcon(QIcon(":/icons/loop_gray_dark.png"));
+    ui->shuffleButton->setIcon(QIcon(":/icons/shuffle_gray_dark.png"));
 }
 
 MainWindow::~MainWindow()
@@ -116,7 +122,7 @@ void MainWindow::initPlayer()
     ui->volumeSlider->setRange(0,100);
     connect(mediaPlayer, &QMediaPlayer::durationChanged, this, &MainWindow::updateSliderRange);
     connect(ui->progressBar, &QSlider::sliderMoved, this, &MainWindow::setSongPosition);
-    connect(ui->shuffleButton, QPushButton::clicked, this, &MainWindow::shuffle);
+    connect(ui->shuffleButton, &QPushButton::clicked, this, &MainWindow::shuffle);
 }
 
 bool MainWindow::checkIfSongIsInPlaylist(QString filePath, Playlist* playlist)
@@ -142,7 +148,7 @@ void MainWindow::selectDirectory()
     if (ui->playlists->findItems("Bibliothek", Qt::MatchExactly).isEmpty())
     {
         ui->playlists->addItem(bibliothek->getName());
-        if(allPlaylists->getPlaylistByName("Bibliothek") == nullptr)
+        if(allPlaylists->findPlaylistByName("Bibliothek") == nullptr)
         {
             allPlaylists->addPlaylist(bibliothek);
         }
@@ -161,6 +167,8 @@ void MainWindow::selectDirectory()
             catchMetaData(song);
         }
     }
+
+    exportSongListToJson();
 }
 
 
@@ -193,8 +201,10 @@ void MainWindow::catchMetaData(Song* song)
 }
 
 
+
 void MainWindow::displayMetaData(Song* song)
 {
+    song->getCachedMetaData();
     ui->songTitle->setText(song->getTitle());
     ui->songAuthor->setText(song->getAuthor());
 }
@@ -226,10 +236,6 @@ void MainWindow::startSong(QListWidgetItem *item)
     mediaPlayer->setSource(queue->getCurrentSong()->getFilePath());
     displayMetaData(song);
     mediaPlayer->play();
-
-    ui->pauseButton->setIcon(QIcon(":/icons/pause.png"));
-    removeClass(ui->pauseButton, "playButton");
-    addClass(ui->pauseButton, "pauseButton");
 
     connect(mediaPlayer, &QMediaPlayer::positionChanged, this, &MainWindow::handleSongFinish);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, this, &MainWindow::updateSliderPosition);
@@ -272,7 +278,7 @@ void MainWindow::createPlaylistUI()
         ui->leftVerticalLayout->addWidget(createButton);
         widgetsCreated = true;
         connect(createButton, &QPushButton::clicked, this, [=]() {
-            if(allPlaylists->getPlaylistByName(nameInput->text()) == nullptr)
+            if(allPlaylists->findPlaylistByName(nameInput->text()) == nullptr)
             {
                 Playlist* p = new Playlist(nameInput->text());
                 ui->playlists->addItem(p->getName());
@@ -280,6 +286,7 @@ void MainWindow::createPlaylistUI()
                 delete nameInput;
                 delete createButton;
                 widgetsCreated = false;
+                exportSongListToJson();
             }
             else
             {
@@ -343,6 +350,7 @@ void MainWindow::fromLibToPlaylist(Playlist* playlist)
             else
             {
                 playlist->addSong(s);
+                exportSongListToJson();
             }
         }
     }
@@ -372,21 +380,22 @@ void MainWindow::handleLoop()
 {
     if(!isSongLooped && isPlaylistLooped)
     {
-        ui->loopSongBtn->setText("kein Loop");
+        ui->loopSongBtn->setIcon(QIcon(":/icons/loop_gray_dark.png"));
         isPlaylistLooped = false;
         return;
     }
     if(isSongLooped && !isPlaylistLooped)
     {
-        ui->loopSongBtn->setText("Playlist Loop");
+        ui->loopSongBtn->setIcon(QIcon(":/icons/loop.png"));
         mediaPlayer->setLoops(1);
         isSongLooped = false;
         isPlaylistLooped = true;
         return;
     }
+
     if(!isSongLooped && !isPlaylistLooped)
     {
-        ui->loopSongBtn->setText("Song Loop");
+        ui->loopSongBtn->setIcon(QIcon(":/icons/song-loop.png"));
         mediaPlayer->setLoops(QMediaPlayer::Infinite);
         isSongLooped = true;
         return;
@@ -401,7 +410,7 @@ Song* MainWindow::getSongByGUI(QListWidgetItem *selectedItem)
     }
     else
     {
-        Playlist* p = allPlaylists->getPlaylistByName(ui->playlists->currentItem()->text());
+        Playlist* p = allPlaylists->findPlaylistByName(ui->playlists->currentItem()->text());
         QString songText = selectedItem->text();
         for(Song* s : p->getSongs())
         {
@@ -419,7 +428,7 @@ void MainWindow::shuffle()
     isShuffled = !isShuffled;
     if(isShuffled)
     {
-        ui->shuffleButton->setStyleSheet("background-color: green");
+        ui->shuffleButton->setIcon(QIcon(":/icons/shuffle.png"));
         Playlist* tmpPlaylist = currentPlaylist;
         std::random_device rd;
         std::mt19937 g(rd());
@@ -433,7 +442,7 @@ void MainWindow::shuffle()
     }
     else
     {
-        ui->shuffleButton->setStyleSheet("");
+        ui->shuffleButton->setIcon(QIcon(":/icons/shuffle_gray_dark.png"));
         buildQueue(getSongByGUI(ui->songList->currentItem()), currentPlaylist);
     }
 }
@@ -567,32 +576,100 @@ void MainWindow::printSongList() {
 }
 
 void MainWindow::exportSongListToJson() {
-    QJsonArray songArray;
-    for (int i = 0; i < ui->songList->count(); ++i) {
-        QListWidgetItem* item = ui->songList->item(i);
-        QJsonObject songObject;
-        songObject["filePath"] = item->text();
-        songArray.append(songObject);
-    }
-
-    QJsonDocument doc(songArray);
-    QString directoryPath = "../../json";
-    QDir dir(directoryPath);
-    if (!dir.exists()) {
-        if (!dir.mkpath(".")) {
-            qWarning() << "Failed to create directory for writing JSON file.";
-            return;
-        }
-    }
-    QFile file(dir.filePath("songFilePaths.json"));
-    if (!file.open(QIODevice::WriteOnly)) {
-        qWarning("Failed to open file for writing.");
+    QDir dir("../../json");
+    if (!dir.exists() && !dir.mkpath(".")) {
+        qDebug() << "Verzeichnis kann nicht erstellt werden:" << dir.absolutePath();
         return;
     }
 
-    file.write(doc.toJson());
+    QJsonArray playlistArray;
+    for (const auto* playlist : allPlaylists->getPlaylists()) {
+        QJsonObject playlistObj;
+        playlistObj["name"] = playlist->getName();
+
+        QJsonArray songsArray;
+        for (const auto* song : playlist->getSongs()) {
+            songsArray.append(song->getFilePath());
+        }
+        playlistObj["songs"] = songsArray;
+        playlistArray.append(playlistObj);
+    }
+
+    QFile file(dir.filePath("playlists.json"));
+    if (!file.open(QIODevice::WriteOnly)) {
+        qDebug() << "Datei kann nicht geschrieben werden:" << file.fileName();
+        return;
+    }
+    file.write(QJsonDocument(playlistArray).toJson());
     file.close();
-    qDebug() << "Song file paths exported to JSON.";
+
+    if (playlistArray.isEmpty()) {
+        qDebug() << "Keine Playlists zum Exportieren gefunden.";
+    } else {
+        qDebug() << "Playlists erfolgreich exportiert nach" << file.fileName();
+        for (const auto* playlist : allPlaylists->getPlaylists()) {
+            qDebug() << "- " << playlist->getName();
+            for (const auto* song : playlist->getSongs()) {
+                qDebug() << "  •" << song->getFilePath();
+            }
+        }
+    }
+}
+
+void MainWindow::importPlaylistsFromJson() {
+    QString filePath = "../../json/playlistsBackup.json";
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "JSON-Datei kann nicht geöffnet werden:" << filePath;
+        return;
+    }
+
+    QByteArray jsonData = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+    if (!doc.isArray()) {
+        qDebug() << "Ungültiges JSON-Format in der Datei.";
+        return;
+    }
+
+    QJsonArray playlistArray = doc.array();
+    for (const QJsonValue& playlistValue : playlistArray) {
+        QJsonObject playlistObj = playlistValue.toObject();
+        QString playlistName = playlistObj["name"].toString();
+        if (playlistName.isEmpty()) continue;
+
+        // Überprüfe, ob die Playlist bereits existiert
+        Playlist* playlist = allPlaylists->findPlaylistByName(playlistName);
+        if (!playlist) {
+            // Erstelle die Playlist, falls sie nicht existiert
+            playlist = new Playlist(playlistName);
+            allPlaylists->addPlaylist(playlist);
+            ui->playlists->addItem(playlist->getName());
+            exportSongListToJson();
+        }
+
+        QJsonArray songsArray = playlistObj["songs"].toArray();
+        for (const QJsonValue& songValue : songsArray) {
+            QString filePath = songValue.toString();
+            if (filePath.isEmpty()) continue;
+
+            // Überprüfe, ob der Song bereits in der Playlist ist
+            if (!playlist->containsSong(filePath)) {
+                // Erstelle den Song und füge ihn hinzu
+                Song* song = new Song(filePath);
+                bibliothek->addSong(song);
+                playlist->addSong(song);
+
+                // Verarbeite die Metadaten des Songs
+                catchMetaData(song);
+            }
+        }
+    }
+
+    ui->songList->clear();
+
+    qDebug() << "Playlists erfolgreich aus JSON importiert.";
 }
 
 void MainWindow::addClass(QWidget* widget, const QString& classToAdd) {

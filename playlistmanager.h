@@ -14,6 +14,7 @@ public:
     void addPlaylist(Playlist* playlist);
     void deletePlaylist(Playlist* playlist);
     Playlist* getPlaylistByName(QString name);
+    Playlist* findPlaylistByName(const QString& name) const;
 
 private:
 

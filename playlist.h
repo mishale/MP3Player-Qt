@@ -19,6 +19,8 @@ public:
     bool operator==(const Playlist& other) const {
         return this->name == other.name;
     }
+    bool containsSong(const QString& filePath) const;
+    Song* findSong(const QString& filePath) const;
 
 private:
 

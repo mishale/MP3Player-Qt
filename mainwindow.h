@@ -33,6 +33,7 @@ private slots:
     void getPlaylistOnClick(QListWidgetItem *playlist); // Playlist anzeigen
     void printSongList();
     void exportSongListToJson();
+    void importPlaylistsFromJson();
     void showContextMenuPlaylist(const QPoint &pos); // Kontext-Menü bei Rechtsklick
     void showContextMenuSongs(const QPoint &pos);
     void deletePlaylist(); // Playlist löschen
@@ -48,7 +49,6 @@ private slots:
     void playNextSong();
     void playPrevSong();
     void shuffle();
-
 
 private:
     Ui::MainWindow *ui;

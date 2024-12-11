@@ -1,8 +1,21 @@
 QListWidget {
-        color: #2D2E2F;
-        background-color: #ffffff;
-        border: 1px solid #2D2E2F;
-        border-radius: 4px;
-        font-family: 'Gilroy-Heavy';
-        font-size: 14px;
+font-family: 'Gilroy-Medium';
+font-size: 14px;
+    border: 1px solid #2D2E2F;
+    border-radius: 3px;
+    background-color: #ffffff;
+    outline: 0;
+}
+
+QListWidget::item {
+    color: #0A0A0B;
+    border-left: 3px solid transparent;
+    padding-left: 2px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+QListWidget::item:selected {
+    background-color: #F0F0F0;
+    border-left: 3px solid #2D2E2F;
 }
