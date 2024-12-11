@@ -13,7 +13,8 @@ Queue::~Queue()
     }
 }
 
-void Queue::addSong(Song* song) {
+void Queue::addSong(Song* song)
+{
     Node* newNode = new Node(song);
     if (head == nullptr) {
         head = tail = current = newNode;

@@ -25,55 +25,54 @@ public:
     ~MainWindow();
 
 private slots:
-    void initPlayer();
+    void initPlayer(); // Player initialisieren
     void selectDirectory(); // Verzeichnis auswählen
+    void displayMetaData(Song* song); // Metadaten anzeigen
     void startSong(QListWidgetItem *item); // Song abspielen & Warteschlange
+    void getPlaylistOnClick(QListWidgetItem *playlist); // Playlist anzeigen
     void pause(); // pausieren/abspielen
     void createPlaylistUI(); // GUI zum Playlist erstellen
-    void getPlaylistOnClick(QListWidgetItem *playlist); // Playlist anzeigen
-    void printSongList();
-    void exportSongListToJson();
-    void importPlaylistsFromJson();
-    void showContextMenuPlaylist(const QPoint &pos); // Kontext-Menü bei Rechtsklick
-    void showContextMenuSongs(const QPoint &pos);
+    void showContextMenuPlaylist(const QPoint &pos); // Kontext-Menü bei Rechtsklick für Playlist
+    void showContextMenuSongs(const QPoint &pos); // Kontext-Menü bei Rechtsklick für Songs
+    void fromLibToPlaylist(Playlist* playlist); // Songs von Bib in andere Playlists hinzufügen
+    void handleLoop(); // Loop Handling
+    void shuffle(); // Shuffle Handling
+    void playNextSong(); // nächster Song
+    void playPrevSong(); // vorheriger Song
+    void handleSongFinish(qint64 position);
     void deletePlaylist(); // Playlist löschen
     void deleteSong(); // Song aus Playlist löschen
-    void changeVolume(int value); // Ändern der Lautstärke
-    void fromLibToPlaylist(Playlist* playlist);
-    void displayMetaData(Song* song);
-    void handleLoop();
-    void handleSongFinish(qint64 position);
     void updateSliderPosition(qint64 position); // Aktualisiert den Slider, wenn die Songposition sich ändert
     void setSongPosition(int position); // Setzt die Songposition, wenn der Slider bewegt wird
     void updateSliderRange(qint64 duration); // Aktualisiert den Sliderbereich, wenn ein neuer Song geladen wird
-    void playNextSong();
-    void playPrevSong();
-    void shuffle();
+    void printSongList();
+    void exportSongListToJson();
+    void importPlaylistsFromJson();
+    void changeVolume(int value); // Ändern der Lautstärke
 
 private:
     Ui::MainWindow *ui;
-    void loadCombinedStylesheet(const QStringList &stylesheetFiles);
-    void searchMP3Files(const QString &directoryPath); // MP3-Suche
     QMediaPlayer *mediaPlayer;
     QAudioOutput *audioOutput;
     QVBoxLayout *verticalLayout;
     QLabel *songMeta;
-    bool widgetsCreated;
+    bool widgetsCreated; // Hilfsvariable zur Playlisterstellung
     Playlist *bibliothek;
-    Playlist *currentPlaylist;
+    Playlist *currentPlaylist; // Playlist, die derzeit gespielt wird
     Queue *queue;
+    PlaylistManager *allPlaylists;
     bool isSongLooped = false;
     bool isPlaylistLooped = false;
     bool isShuffled = false;
-    PlaylistManager *allPlaylists;
+    void loadCombinedStylesheet(const QStringList &stylesheetFiles);
+    bool checkIfSongIsInPlaylist(QString filePath, Playlist* playlist);
+    void displayPlaylist(Playlist* playlist); // Befüllen des QListWidgets mit Songs
+    void catchMetaData(Song* song); // zum einmaligen Abgreifen der Metadaten
+    void buildQueue(Song* song, Playlist* playlist); // bildet Warteschlange
+    Playlist* getPlaylistByGUI(QListWidgetItem *selectedItem); // Playlist-Objekt erreichbar durch GUI
+    Song* getSongByGUI(QListWidgetItem *selectedItem); // Song-Objekt erreichbar durch GUI
     void addClass(QWidget* widget, const QString& classToAdd);
     void removeClass(QWidget* widget, const QString& classToRemove);
-    void displayPlaylist(Playlist* playlist);
-    void catchMetaData(Song* song);
-    Playlist* getPlaylistByGUI(QListWidgetItem *selectedItem);
-    Song* getSongByGUI(QListWidgetItem *selectedItem);
-    void buildQueue(Song* song, Playlist* playlist);
-    bool checkIfSongIsInPlaylist(QString filePath, Playlist* playlist);
 };
 #endif // MAINWINDOW_H
 

@@ -22,15 +22,15 @@ public:
     Queue();
     ~Queue();
 
-    void addSong(Song* song);
-    void forwards();
-    void backwards();
-    Song* getCurrentSong() const;
-    void clear();
-    bool isAtStart() const;
-    bool isAtEnd() const;
-    Song* getFirst() const;
-    Song* getLast() const;
+    void addSong(Song* song); // Song zur Warteschlange hinzufügen
+    void forwards(); // nächster Song in Warteschlange
+    void backwards(); // vorheriger Song
+    Song* getCurrentSong() const; // jetziger Song
+    void clear(); // Warteschlange leeren
+    bool isAtStart() const; // prüfen, ob erster Eintrag
+    bool isAtEnd() const; // prüfen, ob letzter Eintrag
+    Song* getFirst() const; // ersten Eintrag bekommen
+    Song* getLast() const; // letzten Eintrag bekommen
 };
 
 #endif // QUEUE_H

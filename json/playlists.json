@@ -18,6 +18,13 @@
     {
         "name": "TestB",
         "songs": [
+            "C:/Users/nwolf/Documents/GitHub/Semester05/MP3Player-Qt/songs/Mayberg - Endlos_demo.mp3",
+            "C:/Users/nwolf/Documents/GitHub/Semester05/MP3Player-Qt/songs/SDP x Sido x Esther Graf - Mama hat gesagt (Live aus der Wuhlheide Berlin).mp3"
+        ]
+    },
+    {
+        "name": "",
+        "songs": [
         ]
     }
 ]

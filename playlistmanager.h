@@ -9,10 +9,9 @@ class PlaylistManager
 public:
     PlaylistManager();
 
-    QList<Playlist*> getPlaylists();
-    void createPlaylist(const Playlist& playlist);
-    void addPlaylist(Playlist* playlist);
-    void deletePlaylist(Playlist* playlist);
+    QList<Playlist*> getPlaylists(); // alle Playlists
+    void addPlaylist(Playlist* playlist); // Playlist hinzufügen
+    void deletePlaylist(Playlist* playlist); // Playlist löschen
     Playlist* getPlaylistByName(QString name);
     Playlist* findPlaylistByName(const QString& name) const;
 

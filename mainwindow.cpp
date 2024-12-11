@@ -99,7 +99,8 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::loadCombinedStylesheet(const QStringList &stylesheetFiles) {
+void MainWindow::loadCombinedStylesheet(const QStringList &stylesheetFiles)
+{
     QString combinedStylesheet;
     foreach (const QString &path, stylesheetFiles) {
         QFile file(path);
@@ -299,7 +300,7 @@ void MainWindow::createPlaylistUI()
 void MainWindow::showContextMenuPlaylist(const QPoint &pos)
 {
     QMenu contextMenu(tr("Context menu"), this);
-    QAction *actionDeletePlaylist = new QAction("Playlist löschen", this);
+    QAction *actionDeletePlaylist = new QAction("Playlist löschen", this); // Action Playlist löschen
     connect(actionDeletePlaylist, &QAction::triggered, this, &MainWindow::deletePlaylist);
 
     contextMenu.addAction(actionDeletePlaylist);
@@ -310,12 +311,12 @@ void MainWindow::showContextMenuPlaylist(const QPoint &pos)
 void MainWindow::showContextMenuSongs(const QPoint &pos)
 {
     QMenu contextMenu(tr("Context menu"), this);
-    QAction *actionDeleteSong = new QAction("Song löschen", this);
+    QAction *actionDeleteSong = new QAction("Song löschen", this); // Action Song löschen
     connect(actionDeleteSong, &QAction::triggered, this, &MainWindow::deleteSong);
 
     contextMenu.addAction(actionDeleteSong);
 
-    QMenu *subMenu = new QMenu("zu Playlist hinzufügen", &contextMenu);
+    QMenu *subMenu = new QMenu("zu Playlist hinzufügen", &contextMenu); // Action zur Playlist hinzufügen
     QList<Playlist*> playlists = allPlaylists->getPlaylists();
 
     for (Playlist* playlist : playlists) {
@@ -378,13 +379,13 @@ Playlist* MainWindow::getPlaylistByGUI(QListWidgetItem *selectedItem)
 
 void MainWindow::handleLoop()
 {
-    if(!isSongLooped && isPlaylistLooped)
+    if(!isSongLooped && isPlaylistLooped) // Playlist Loop
     {
         ui->loopSongBtn->setIcon(QIcon(":/icons/loop_gray_dark.png"));
         isPlaylistLooped = false;
         return;
     }
-    if(isSongLooped && !isPlaylistLooped)
+    if(isSongLooped && !isPlaylistLooped) // kein Loop
     {
         ui->loopSongBtn->setIcon(QIcon(":/icons/loop.png"));
         mediaPlayer->setLoops(1);
@@ -393,7 +394,7 @@ void MainWindow::handleLoop()
         return;
     }
 
-    if(!isSongLooped && !isPlaylistLooped)
+    if(!isSongLooped && !isPlaylistLooped) // Song Loop
     {
         ui->loopSongBtn->setIcon(QIcon(":/icons/song-loop.png"));
         mediaPlayer->setLoops(QMediaPlayer::Infinite);
@@ -449,19 +450,18 @@ void MainWindow::shuffle()
 
 void MainWindow::playNextSong()
 {
-    if(!isSongLooped)
+    if(!isSongLooped) // wenn Song nicht geloopt
     {
         if(!queue->isAtEnd())
         {
             queue->forwards();
             displayMetaData(queue->getCurrentSong());
             mediaPlayer->setSource(queue->getCurrentSong()->getFilePath());
-            //ui->songList->setCurrentItem();
             mediaPlayer->play();
         }
-        else
+        else // wenn letzter Song
         {
-            if(isPlaylistLooped)
+            if(isPlaylistLooped) // Playlist neu von vorne
             {
                 displayMetaData(queue->getFirst());
                 mediaPlayer->setSource(queue->getFirst()->getFilePath());
@@ -470,7 +470,7 @@ void MainWindow::playNextSong()
             }
         }
     }
-    else
+    else // wenn Song geloopt
     {
         mediaPlayer->setPosition(0);
         mediaPlayer->play();
@@ -499,7 +499,7 @@ void MainWindow::playPrevSong()
 void MainWindow::handleSongFinish(qint64 position)
 {
     qint64 duration = mediaPlayer->duration();
-    if(duration > 0 && position >= duration && ui->songList->count() > 1)
+    if(duration > 0 && position >= duration && ui->songList->count() > 1) // wenn aktuelle Position = Länge des Songs
     {
         playNextSong();
     }
@@ -568,14 +568,16 @@ void MainWindow::updateSliderRange(qint64 duration)
     ui->progressBar->setRange(0, static_cast<int>(duration));
 }
 
-void MainWindow::printSongList() {
+void MainWindow::printSongList()
+{
     for (int i = 0; i < ui->songList->count(); ++i) {
         QListWidgetItem* item = ui->songList->item(i);
     }
     exportSongListToJson();
 }
 
-void MainWindow::exportSongListToJson() {
+void MainWindow::exportSongListToJson()
+{
     QDir dir("../../json");
     if (!dir.exists() && !dir.mkpath(".")) {
         qDebug() << "Verzeichnis kann nicht erstellt werden:" << dir.absolutePath();
@@ -616,7 +618,8 @@ void MainWindow::exportSongListToJson() {
     }
 }
 
-void MainWindow::importPlaylistsFromJson() {
+void MainWindow::importPlaylistsFromJson()
+{
     QString filePath = "../../json/playlistsBackup.json";
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
@@ -672,7 +675,8 @@ void MainWindow::importPlaylistsFromJson() {
     qDebug() << "Playlists erfolgreich aus JSON importiert.";
 }
 
-void MainWindow::addClass(QWidget* widget, const QString& classToAdd) {
+void MainWindow::addClass(QWidget* widget, const QString& classToAdd)
+{
     QString currentClasses = widget->property("class").toString();
     if (!currentClasses.split(' ').contains(classToAdd)) {
         currentClasses += " " + classToAdd;
@@ -682,7 +686,8 @@ void MainWindow::addClass(QWidget* widget, const QString& classToAdd) {
     }
 }
 
-void MainWindow::removeClass(QWidget* widget, const QString& classToRemove) {
+void MainWindow::removeClass(QWidget* widget, const QString& classToRemove)
+{
     QStringList classes = widget->property("class").toString().split(' ');
     classes.removeAll(classToRemove);
     widget->setProperty("class", classes.join(' ').trimmed());
