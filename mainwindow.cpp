@@ -743,3 +743,35 @@ void MainWindow::changeVolume(int value)
     double volume = pow(value / 100.0, 2);
     audioOutput->setVolume(volume);
 }
+
+void MainWindow::printColored(const QString& text, const QString& textColor, const QString& backgroundColor = "", bool bold = false) {
+    // ANSI-Farbcodes
+    QMap<QString, int> colorCodes = {
+        {"schwarz", 30},
+        {"rot", 31},
+        {"grün", 32},
+        {"gelb", 33},
+        {"blau", 34},
+        {"magenta", 35},
+        {"cyan", 36},
+        {"weiß", 37}
+    };
+
+    int textCode = colorCodes.value(textColor.toLower(), 37); // Standard: Weiß
+    QString backgroundCode = backgroundColor.isEmpty() ? ""
+                                                       : QString::number(colorCodes.value(backgroundColor.toLower(), 40) + 10);
+
+    QString style = bold ? "1" : "0"; // "1" für Fett, "0" für Normal
+
+    QString formattedText;
+    if (backgroundCode.isEmpty()) {
+        // Nur Textfarbe und Stil
+        formattedText = QString("\033[%1;%2m%3\033[0m").arg(style).arg(textCode).arg(text);
+    } else {
+        // Text- und Hintergrundfarbe
+        formattedText = QString("\033[%1;%2;%3m%4\033[0m").arg(style).arg(textCode).arg(backgroundCode).arg(text);
+    }
+
+    QTextStream out(stdout);
+    out << formattedText << Qt::endl;
+}

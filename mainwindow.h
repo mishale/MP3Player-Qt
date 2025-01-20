@@ -49,6 +49,7 @@ private slots:
     void exportSongListToJson();
     void importPlaylistsFromJson();
     void changeVolume(int value); // Ändern der Lautstärke
+    void printColored(const QString& text, const QString& textColor, const QString& backgroundColor, bool bold); // farbige Konsolenausgaben
 
 private:
     Ui::MainWindow *ui;
