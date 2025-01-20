@@ -73,18 +73,11 @@
           <number>4</number>
          </property>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout" stretch="10">
-           <property name="spacing">
-            <number>4</number>
+          <widget class="QPushButton" name="selectDirButton">
+           <property name="text">
+            <string>Song zur Bibliothek hinzufügen</string>
            </property>
-           <item>
-            <widget class="QPushButton" name="selectDirButton">
-             <property name="text">
-              <string>Song zur Bibliothek hinzufügen</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          </widget>
          </item>
          <item>
           <widget class="QListWidget" name="songList">

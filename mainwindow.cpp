@@ -63,35 +63,45 @@ MainWindow::MainWindow(QWidget *parent)
     ui->songList->setContextMenuPolicy(Qt::CustomContextMenu);
 
     initPlayer();
-    connect(ui->selectDirButton, &QPushButton::clicked, this, &MainWindow::selectDirectory);
-    connect(ui->songList, &QListWidget::itemDoubleClicked, this, &MainWindow::startSong);
-    connect(ui->playlists, &QListWidget::itemClicked, this, &MainWindow::getPlaylistOnClick);
-    connect(ui->pauseButton, &QPushButton::clicked, this, &MainWindow::pause);
-    connect(ui->newPlaylist, &QPushButton::clicked, this, &MainWindow::createPlaylistUI);
-    connect(ui->playlists, &QListWidget::customContextMenuRequested,
-            this, &MainWindow::showContextMenuPlaylist);
-    connect(ui->songList, &QListWidget::customContextMenuRequested,
-            this, &MainWindow::showContextMenuSongs);
-    connect(ui->volumeSlider, &QSlider::valueChanged, this, &MainWindow::changeVolume);
-    connect(ui->loopSongBtn, &QPushButton::clicked, this, &MainWindow::handleLoop);
+    connect(ui->newPlaylist,        &QPushButton::clicked,                      this, &MainWindow::createPlaylistUI);
+    connect(ui->playlists,          &QListWidget::itemClicked,                  this, &MainWindow::getPlaylistOnClick);
+    connect(ui->playlists,          &QListWidget::customContextMenuRequested,   this, &MainWindow::showContextMenuPlaylist);
 
+    connect(ui->shuffleButton,      &QPushButton::clicked,                      this, &MainWindow::shuffle);
+    connect(ui->prevButton,         &QPushButton::clicked,                      this, &MainWindow::playPrevSong);
+    connect(ui->pauseButton,        &QPushButton::clicked,                      this, &MainWindow::pause);
+    connect(ui->nextButton,         &QPushButton::clicked,                      this, &MainWindow::playNextSong);
+    connect(ui->loopSongBtn,        &QPushButton::clicked,                      this, &MainWindow::handleLoop);
+    connect(ui->volumeSlider,       &QSlider::valueChanged,                     this, &MainWindow::changeVolume);
+
+    connect(ui->progressBar,        &QSlider::sliderMoved,                      this, &MainWindow::setSongPosition);
+
+    connect(mediaPlayer,            &QMediaPlayer::positionChanged,             this, &MainWindow::handleSongFinish);
+    connect(mediaPlayer,            &QMediaPlayer::positionChanged,             this, &MainWindow::updateSliderPosition);
+    connect(mediaPlayer,            &QMediaPlayer::durationChanged,             this, &MainWindow::updateSliderRange);
+
+    connect(ui->selectDirButton,    &QPushButton::clicked,                      this, &MainWindow::selectDirectory);
+    connect(ui->songList,           &QListWidget::itemDoubleClicked,            this, &MainWindow::startSong);
+    connect(ui->songList,           &QListWidget::customContextMenuRequested,   this, &MainWindow::showContextMenuSongs);
+
+    addClass(ui->playlists,     "playlistListWidget");
+    addClass(ui->songList,      "songListWidget");
 
     addClass(ui->shuffleButton, "soundControlButton");
-    addClass(ui->prevButton, "soundControlButton");
-    addClass(ui->pauseButton, "soundControlButton");
-    addClass(ui->nextButton, "soundControlButton");
-    addClass(ui->loopSongBtn, "soundControlButton");
+    addClass(ui->prevButton,    "soundControlButton");
+    addClass(ui->pauseButton,   "soundControlButton");
+    addClass(ui->pauseButton,   "pauseButton");
+    addClass(ui->nextButton,    "soundControlButton");
+    addClass(ui->loopSongBtn,   "soundControlButton");
 
-    addClass(ui->progressBar, "progressBar");
+    addClass(ui->progressBar,   "progressBar");
 
-    addClass(ui->songTitle, "SongName");
-    addClass(ui->songAuthor, "SongInterpret");
+    addClass(ui->songTitle,     "SongName");
+    addClass(ui->songAuthor,    "SongInterpret");
 
-    ui->pauseButton->setIcon(QIcon(":/icons/pause.png"));
-    addClass(ui->pauseButton, "pauseButton");
-
-    ui->loopSongBtn->setIcon(QIcon(":/icons/loop_gray_dark.png"));
-    ui->shuffleButton->setIcon(QIcon(":/icons/shuffle_gray_dark.png"));
+    ui->pauseButton     ->setIcon(QIcon(":/icons/pause.png"));
+    ui->loopSongBtn     ->setIcon(QIcon(":/icons/loop_gray_dark.png"));
+    ui->shuffleButton   ->setIcon(QIcon(":/icons/shuffle_gray_dark.png"));
 }
 
 MainWindow::~MainWindow()
@@ -121,9 +131,6 @@ void MainWindow::initPlayer()
     mediaPlayer->setAudioOutput(audioOutput);
     audioOutput->setVolume(1);
     ui->volumeSlider->setRange(0,100);
-    connect(mediaPlayer, &QMediaPlayer::durationChanged, this, &MainWindow::updateSliderRange);
-    connect(ui->progressBar, &QSlider::sliderMoved, this, &MainWindow::setSongPosition);
-    connect(ui->shuffleButton, &QPushButton::clicked, this, &MainWindow::shuffle);
 }
 
 bool MainWindow::checkIfSongIsInPlaylist(QString filePath, Playlist* playlist)
@@ -257,11 +264,6 @@ void MainWindow::startSong(QListWidgetItem *item)
     mediaPlayer->setSource(queue->getCurrentSong()->getFilePath());
     displayMetaData(song);
     mediaPlayer->play();
-
-    connect(mediaPlayer, &QMediaPlayer::positionChanged, this, &MainWindow::handleSongFinish);
-    connect(mediaPlayer, &QMediaPlayer::positionChanged, this, &MainWindow::updateSliderPosition);
-    connect(ui->nextButton, &QPushButton::clicked, this, &MainWindow::playNextSong);
-    connect(ui->prevButton, &QPushButton::clicked, this, &MainWindow::playPrevSong);
 }
 
 void MainWindow::getPlaylistOnClick(QListWidgetItem *playlist)
