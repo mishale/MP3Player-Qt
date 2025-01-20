@@ -662,7 +662,7 @@ void MainWindow::exportSongListToJson()
 
 void MainWindow::importPlaylistsFromJson()
 {
-    QString filePath = "../../json/playlistsBackup.json";
+    QString filePath = "../../json/playlists.json";
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         qDebug() << "JSON-Datei kann nicht geöffnet werden:" << filePath;
