@@ -191,7 +191,22 @@ void MainWindow::displayPlaylist(Playlist* playlist)
             QWidget* itemWidget = new QWidget(ui->songList);
 
             QLabel* leftLabel = new QLabel(s->getTitle(), itemWidget);
-            QLabel* rightLabel = new QLabel(s->getDuration(), itemWidget); // z. B. Song-Dauer
+
+            QString durationStr = s->getDuration(); // Dauer als QString
+            QString formattedDuration;
+            if (!durationStr.isEmpty()) {
+                qint64 durationMs = durationStr.toLongLong();
+                int minutes = durationMs / 60000;
+                int seconds = (durationMs % 60000) / 1000;
+
+                formattedDuration = QString("%1:%2")
+                                        .arg(minutes, 2, 10, QChar('0')) // Minuten, zweistellig
+                                        .arg(seconds, 2, 10, QChar('0')); // Sekunden, zweistellig
+            } else {
+                formattedDuration = "Dauer unbekannt";
+            }
+
+            QLabel* rightLabel = new QLabel(formattedDuration, itemWidget);
 
             // Layout für die Labels
             QHBoxLayout* layout = new QHBoxLayout(itemWidget);
