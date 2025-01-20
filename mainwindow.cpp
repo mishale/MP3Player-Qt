@@ -177,15 +177,35 @@ void MainWindow::displayPlaylist(Playlist* playlist)
 {
     ui->songList->clear();
     QList<Song*> allSongs = playlist->getSongs();
-    if(!allSongs.isEmpty())
+    if (!allSongs.isEmpty())
     {
         for (Song* s : allSongs)
         {
-            ui->songList->addItem(s->getTitle());
+            QWidget* itemWidget = new QWidget(ui->songList);
+
+            QLabel* leftLabel = new QLabel(s->getTitle(), itemWidget);
+            QLabel* rightLabel = new QLabel(s->getDuration(), itemWidget); // z. B. Song-Dauer
+
+            // Layout für die Labels
+            QHBoxLayout* layout = new QHBoxLayout(itemWidget);
+            layout->addWidget(leftLabel);
+            layout->addStretch();
+            layout->addWidget(rightLabel);
+
+            itemWidget->setLayout(layout);
+
+            QListWidgetItem* listItem = new QListWidgetItem(ui->songList);
+            listItem->setSizeHint(itemWidget->sizeHint());
+
+            // Speichere den Song-Zeiger in den Listeneintrag
+            listItem->setData(Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(s)));
+
+            // Verbinde das Widget mit dem Listeneintrag
+            ui->songList->setItemWidget(listItem, itemWidget);
         }
     }
-
 }
+
 
 void MainWindow::catchMetaData(Song* song)
 {
@@ -332,30 +352,44 @@ void MainWindow::showContextMenuSongs(const QPoint &pos)
 
 void MainWindow::fromLibToPlaylist(Playlist* playlist)
 {
-    QString songToAdd = ui->songList->currentItem()->text();
-    Playlist* fromPlaylist = getPlaylistByGUI(ui->playlists->currentItem());
-    if(fromPlaylist == playlist)
-    {
-        qWarning() << "Start- und Zielplaylist dürfen nicht identisch sein";
+    if (!playlist) {
+        qWarning() << "Zielplaylist ist ungültig";
         return;
     }
-    QList<Song*> allSongs = fromPlaylist->getSongs();
-    for(Song* s : allSongs)
-    {
-        if(s->getTitle() == songToAdd)
-        {
-            if(checkIfSongIsInPlaylist(s->getFilePath(), playlist))
-            {
-                qWarning() << "Song bereits in Playlist";
-            }
-            else
-            {
-                playlist->addSong(s);
-                exportSongListToJson();
-            }
-        }
+
+    QListWidgetItem* selectedItem = ui->songList->currentItem();
+    if (!selectedItem) {
+        qWarning() << "Kein Song ausgewählt!";
+        return;
     }
+
+    Song* songToAdd = reinterpret_cast<Song*>(selectedItem->data(Qt::UserRole).value<void*>());
+    if (!songToAdd) {
+        qWarning() << "Konnte den Song aus dem Listeneintrag nicht laden!";
+        return;
+    }
+
+    Playlist* fromPlaylist = getPlaylistByGUI(ui->playlists->currentItem());
+    if (!fromPlaylist || fromPlaylist == playlist) {
+        qWarning() << (fromPlaylist ? "Start- und Zielplaylist dürfen nicht identisch sein!" : "Konnte die Quell-Playlist nicht ermitteln!");
+        return;
+    }
+
+    if (!fromPlaylist->getSongs().contains(songToAdd)) {
+        qWarning() << "Der ausgewählte Song befindet sich nicht in der Quell-Playlist!";
+        return;
+    }
+
+    if (checkIfSongIsInPlaylist(songToAdd->getFilePath(), playlist)) {
+        qWarning() << "Song ist bereits in der Zielplaylist vorhanden!";
+        return;
+    }
+
+    playlist->addSong(songToAdd);
+    exportSongListToJson();
+    qDebug() << "Song erfolgreich hinzugefügt:" << songToAdd->getTitle();
 }
+
 
 Playlist* MainWindow::getPlaylistByGUI(QListWidgetItem *selectedItem)
 {
@@ -409,19 +443,16 @@ Song* MainWindow::getSongByGUI(QListWidgetItem *selectedItem)
     if (!selectedItem) {
         return nullptr;
     }
-    else
+
+    // Lade den Song-Zeiger direkt aus den Daten des Listeneintrags
+    QVariant songData = selectedItem->data(Qt::UserRole);
+    if (songData.isValid())
     {
-        Playlist* p = allPlaylists->findPlaylistByName(ui->playlists->currentItem()->text());
-        QString songText = selectedItem->text();
-        for(Song* s : p->getSongs())
-        {
-            if(s->getTitle() == songText)
-            {
-                return s;
-            }
-        }
-        return nullptr;
+        return reinterpret_cast<Song*>(songData.value<void*>());
     }
+
+    // Falls keine Daten gefunden wurden, gib nullptr zurück
+    return nullptr;
 }
 
 void MainWindow::shuffle()
@@ -532,10 +563,18 @@ void MainWindow::deleteSong()
     {
         playlist = getPlaylistByGUI(ui->playlists->currentItem());
     }
+
     QListWidgetItem *selectedItem = ui->songList->currentItem();
+
+    Song* songToRemove = reinterpret_cast<Song*>(selectedItem->data(Qt::UserRole).value<void*>());
+    if (!songToRemove) {
+        qWarning() << "Konnte den Song aus dem Listeneintrag nicht laden!";
+        return;
+    }
+
     for (Song* s : playlist->getSongs())
     {
-        if(s->getTitle() == selectedItem->text())
+        if(s == songToRemove)
         {
             playlist->deleteSong(s);
             delete ui->songList->takeItem(ui->songList->row(ui->songList->currentItem()));
@@ -553,6 +592,7 @@ void MainWindow::deleteSong()
         }
     }
 }
+
 void MainWindow::updateSliderPosition(qint64 position)
 {
     ui->progressBar->setValue(static_cast<int>(position));
