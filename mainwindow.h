@@ -7,6 +7,7 @@
 #include <QLabel>
 #include "playlistmanager.h"
 #include "queue.h"
+#include "sleeptimerwindow.h"
 
 #include <QMainWindow>
 
@@ -26,6 +27,7 @@ public:
 
 private slots:
     void initPlayer(); // Player initialisieren
+    void setUpSleepTimer(); // Sleep Timer initialisieren
     void selectDirectory(); // Verzeichnis auswählen
     void displayMetaData(Song* song); // Metadaten anzeigen
     void startSong(QListWidgetItem *item); // Song abspielen & Warteschlange
@@ -61,6 +63,7 @@ private:
     Playlist *bibliothek;
     Playlist *currentPlaylist; // Playlist, die derzeit gespielt wird
     Queue *queue;
+    SleepTimerWindow *sleeptimerwindow;
     PlaylistManager *allPlaylists;
     bool isSongLooped = false;
     bool isPlaylistLooped = false;

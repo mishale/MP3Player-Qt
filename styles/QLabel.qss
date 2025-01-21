@@ -4,8 +4,8 @@ QLabel {
 
 QLabel.SongName {
     font-size: 16px;
-    qproperty-alignment: 'AlignCenter';
     font-family: 'Gilroy-Heavy';
+    qproperty-alignment: 'AlignCenter';
 }
 
 QLabel.SongInterpret {

@@ -33,6 +33,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         queue.h queue.cpp
         mainwindow.ui
         resources.qrc
+        sleeptimerwindow.h sleeptimerwindow.cpp
 
     )
 # Define target properties for Android with Qt 6 as:

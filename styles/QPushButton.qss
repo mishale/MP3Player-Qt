@@ -13,3 +13,15 @@ QPushButton {
 QPushButton:hover {
         background-color: #0A0A0B;
 }
+
+QPushButton.SleepTimer {
+    font-family: 'Gilroy-Light';
+    background-color: transparent;
+    border-radius: 2px;
+    color: #2D2E2F;
+    padding: 0;
+}
+
+QPushButton:hover.SleepTimer {
+    font-family: 'Gilroy-Medium';
+}

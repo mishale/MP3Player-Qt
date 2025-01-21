@@ -26,5 +26,6 @@
         <file>songs/Mayberg - Endlos_demo.mp3</file>
         <file>songs/SDP x Sido x Esther Graf - Mama hat gesagt (Live aus der Wuhlheide Berlin).mp3</file>
         <file>songs/APT.mp3</file>
+        <file>styles/QToolTip.qss</file>
     </qresource>
 </RCC>

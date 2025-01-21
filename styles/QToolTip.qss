@@ -1,0 +1,8 @@
+QToolTip {
+    background-color: #ffffff;
+    color: #0A0A0B;
+    border: 1px solid #0A0A0B;
+    padding: 1px;
+    font-family: 'Gilroy-Light';
+    font-size: 12px;
+}

@@ -52,6 +52,9 @@
        </property>
        <item>
         <widget class="QPushButton" name="newPlaylist">
+         <property name="toolTip">
+          <string>Füge eine neue Playlist hinzu.</string>
+         </property>
          <property name="text">
           <string>neue Playlist</string>
          </property>
@@ -74,6 +77,9 @@
          </property>
          <item>
           <widget class="QPushButton" name="selectDirButton">
+           <property name="toolTip">
+            <string>Füge einen neuen Song zur Bibliothek hinzu</string>
+           </property>
            <property name="text">
             <string>Song zur Bibliothek hinzufügen</string>
            </property>
@@ -81,6 +87,9 @@
          </item>
          <item>
           <widget class="QListWidget" name="songList">
+           <property name="toolTip">
+            <string/>
+           </property>
            <property name="styleSheet">
             <string notr="true"/>
            </property>
@@ -133,20 +142,23 @@
           <number>0</number>
          </property>
          <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Orientation::Horizontal</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Policy::Maximum</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
+          <widget class="QPushButton" name="sleepTimer">
+           <property name="maximumSize">
             <size>
              <width>80</width>
              <height>30</height>
             </size>
            </property>
-          </spacer>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="toolTip">
+            <string>Sleeptimer</string>
+           </property>
+           <property name="text">
+            <string>00:00</string>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QToolButton" name="shuffleButton">
@@ -181,6 +193,9 @@
              <height>30</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>Vorheriger Song</string>
+           </property>
            <property name="styleSheet">
             <string notr="true">qproperty-icon: url(:/icons/backward.png);</string>
            </property>
@@ -202,6 +217,9 @@
              <width>30</width>
              <height>30</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string>Pause</string>
            </property>
            <property name="styleSheet">
             <string notr="true"/>
@@ -225,6 +243,9 @@
              <height>30</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>Nächster Song</string>
+           </property>
            <property name="styleSheet">
             <string notr="true">qproperty-icon: url(:/icons/forward.png);</string>
            </property>
@@ -247,6 +268,9 @@
              <height>30</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>Wiedergabe stoppt, wenn die Playlist durchgelaufen ist.</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -259,6 +283,12 @@
              <width>80</width>
              <height>30</height>
             </size>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="toolTip">
+            <string>Lautstärke</string>
            </property>
            <property name="value">
             <number>99</number>

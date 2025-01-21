@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     QStringList stylesheetFiles = {
         ":/styles/QMainWindow.qss",
+        ":/styles/QToolTip.qss",
         ":/styles/QLabel.qss",
         ":/styles/QListWidget.qss",
         ":/styles/QPushButton.qss",
@@ -49,12 +50,11 @@ MainWindow::MainWindow(QWidget *parent)
         ":/styles/QSlider.qss"
     };
 
-    loadCombinedStylesheet(stylesheetFiles);
-
     connect(ui->newPlaylist,        &QPushButton::clicked,                      this, &MainWindow::createPlaylistUI);
     connect(ui->playlists,          &QListWidget::itemClicked,                  this, &MainWindow::getPlaylistOnClick);
     connect(ui->playlists,          &QListWidget::customContextMenuRequested,   this, &MainWindow::showContextMenuPlaylist);
 
+    connect(ui->sleepTimer,         &QPushButton::clicked,                      this, &MainWindow::setUpSleepTimer);
     connect(ui->shuffleButton,      &QPushButton::clicked,                      this, &MainWindow::shuffle);
     connect(ui->prevButton,         &QPushButton::clicked,                      this, &MainWindow::playPrevSong);
     connect(ui->pauseButton,        &QPushButton::clicked,                      this, &MainWindow::pause);
@@ -87,6 +87,8 @@ MainWindow::MainWindow(QWidget *parent)
     addClass(ui->songTitle,     "SongName");
     addClass(ui->songAuthor,    "SongInterpret");
 
+    addClass(ui->sleepTimer, "SleepTimer");
+
     ui->pauseButton     ->setIcon(QIcon(":/icons/pause.png"));
     ui->loopSongBtn     ->setIcon(QIcon(":/icons/loop_gray_dark.png"));
     ui->shuffleButton   ->setIcon(QIcon(":/icons/shuffle_gray_dark.png"));
@@ -105,7 +107,31 @@ MainWindow::MainWindow(QWidget *parent)
 
     initPlayer();
 
-    importPlaylistsFromJson();
+    //importPlaylistsFromJson();
+
+    loadCombinedStylesheet(stylesheetFiles);
+
+    sleeptimerwindow = new SleepTimerWindow(this);
+    ui->sleepTimer->setToolTip("Sleeptimer");
+    connect(sleeptimerwindow, &SleepTimerWindow::remainingTimeUpdated, this, [this](int remainingSeconds) {
+        int minutes = remainingSeconds / 60;
+        int seconds = remainingSeconds % 60;
+
+        QString timeText = QString("%1:%2")
+                               .arg(minutes, 2, 10, QChar('0')) // Minuten zweistellig
+                               .arg(seconds, 2, 10, QChar('0')); // Sekunden zweistellig
+
+        ui->sleepTimer->setText(timeText); // Text auf den Button setzen
+    });
+
+    connect(sleeptimerwindow, &SleepTimerWindow::timerExpired, this, [this]() {
+        mediaPlayer->pause();
+        ui->pauseButton->setIcon(QIcon(":/icons/play.png"));
+        ui->pauseButton->setToolTip("Play");
+        removeClass(ui->pauseButton, "pauseButton");
+        addClass(ui->pauseButton, "playButton");
+        printColored("Counter zuende", "rot", "", false);
+    });
 
 }
 
@@ -129,6 +155,12 @@ void MainWindow::loadCombinedStylesheet(const QStringList &stylesheetFiles)
     }
 
     this->setStyleSheet(combinedStylesheet);  // Setze das kombinierte Stylesheet
+}
+
+void MainWindow::setUpSleepTimer() {
+    sleeptimerwindow->setModal(true); // Fenster als modal setzen
+    sleeptimerwindow->exec();
+    printColored("Sleeptimer clicked", "gelb", "", false);
 }
 
 void MainWindow::initPlayer()
@@ -309,6 +341,7 @@ void MainWindow::pause()
     {
         mediaPlayer->pause();
         ui->pauseButton->setIcon(QIcon(":/icons/play.png"));
+        ui->pauseButton->setToolTip("Play");
         removeClass(ui->pauseButton, "pauseButton");
         addClass(ui->pauseButton, "playButton");
 
@@ -317,6 +350,7 @@ void MainWindow::pause()
     {
         mediaPlayer->play();
         ui->pauseButton->setIcon(QIcon(":/icons/pause.png"));
+        ui->pauseButton->setToolTip("Pause");
         removeClass(ui->pauseButton, "playButton");
         addClass(ui->pauseButton, "pauseButton");
     }
@@ -450,12 +484,14 @@ void MainWindow::handleLoop()
     if(!isSongLooped && isPlaylistLooped) // Playlist Loop
     {
         ui->loopSongBtn->setIcon(QIcon(":/icons/loop_gray_dark.png"));
+        ui->loopSongBtn->setToolTip("Wiedergabe stoppt, wenn die Playlist durchgelaufen ist.");
         isPlaylistLooped = false;
         return;
     }
     if(isSongLooped && !isPlaylistLooped) // kein Loop
     {
         ui->loopSongBtn->setIcon(QIcon(":/icons/loop.png"));
+        ui->loopSongBtn->setToolTip("Playlist wird nach dem letzten Song neu gestartet.");
         mediaPlayer->setLoops(1);
         isSongLooped = false;
         isPlaylistLooped = true;
@@ -465,6 +501,7 @@ void MainWindow::handleLoop()
     if(!isSongLooped && !isPlaylistLooped) // Song Loop
     {
         ui->loopSongBtn->setIcon(QIcon(":/icons/song-loop.png"));
+        ui->loopSongBtn->setToolTip("Aktueller Song wird in Endlosschleife wiedergegeben.");
         mediaPlayer->setLoops(QMediaPlayer::Infinite);
         isSongLooped = true;
         return;
@@ -495,6 +532,7 @@ void MainWindow::shuffle()
     if(isShuffled)
     {
         ui->shuffleButton->setIcon(QIcon(":/icons/shuffle.png"));
+        ui->loopSongBtn->setToolTip("Shuffle aktiviert.");
         Playlist* tmpPlaylist = currentPlaylist;
         std::random_device rd;
         std::mt19937 g(rd());
@@ -509,6 +547,7 @@ void MainWindow::shuffle()
     else
     {
         ui->shuffleButton->setIcon(QIcon(":/icons/shuffle_gray_dark.png"));
+        ui->loopSongBtn->setToolTip("Shuffle deaktiviert.");
         buildQueue(getSongByGUI(ui->songList->currentItem()), currentPlaylist);
     }
 }
