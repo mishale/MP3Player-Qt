@@ -71,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->selectDirButton,    &QPushButton::clicked,                      this, &MainWindow::selectDirectory);
     connect(ui->songList,           &QListWidget::itemDoubleClicked,            this, &MainWindow::startSong);
     connect(ui->songList,           &QListWidget::customContextMenuRequested,   this, &MainWindow::showContextMenuSongs);
+    connect(ui->miniPlayerBtn,      &QPushButton::clicked,                      this, &MainWindow::toggleMiniPlayer);
 
     addClass(ui->playlists,     "playlistListWidget");
     addClass(ui->songList,      "songListWidget");
@@ -98,6 +99,8 @@ MainWindow::MainWindow(QWidget *parent)
     bibliothek = new Playlist("Bibliothek");
     currentPlaylist = bibliothek;
     allPlaylists->addPlaylist(bibliothek);
+    playerContainer = new QWidget(this);
+    playerLayout = new QVBoxLayout(playerContainer);
 
     queue = new Queue();
 
@@ -106,6 +109,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->songList->setContextMenuPolicy(Qt::CustomContextMenu);
 
     initPlayer();
+    initMiniPlayer();
 
     //importPlaylistsFromJson();
 
@@ -169,6 +173,28 @@ void MainWindow::initPlayer()
     audioOutput->setVolume(1);
     ui->volumeSlider->setRange(0,100);
 }
+
+void MainWindow::initMiniPlayer()
+{
+
+    ui->rightVerticalLayout->layout()->removeItem(ui->horizontalLayout);
+    playerLayout->addLayout(ui->horizontalLayout);
+
+    playerLayout->addWidget(ui->songAuthor);
+    playerLayout->addWidget(ui->progressBar);
+
+    ui->rightVerticalLayout->layout()->removeItem(ui->buttonsHorizontalLayout);
+    playerLayout->addLayout(ui->buttonsHorizontalLayout);
+    // Sicherstellen, dass playerContainer Teil der UI ist
+    // Zum Beispiel, indem es in das bestehende Layout eingefügt wird
+    if (ui->rightVerticalLayout->layout()) {
+        ui->rightVerticalLayout->layout()->addWidget(playerContainer);
+    }
+    originalCentralWidget = centralWidget();
+    // Das Widget anzeigen
+    playerContainer->show();
+}
+
 
 bool MainWindow::IsSongInPlaylist(QString filePath, Playlist* playlist)
 {
@@ -847,4 +873,28 @@ void MainWindow::printColored(const QString& text, const QString& textColor, con
 
     QTextStream out(stdout);
     out << formattedText << Qt::endl;
+}
+
+void MainWindow::toggleMiniPlayer()
+{
+    if(ui->playlists->isVisible())
+    {
+        //originalCentralWidget = this->centralWidget();
+        ui->newPlaylist->setVisible(false);
+        ui->playlists->setVisible(false);
+        ui->songList->setVisible(false);
+        ui->selectDirButton->setVisible(false);
+        playerContainer->setGeometry(1,1,400,100);
+        this->setCentralWidget(playerContainer);
+        this->resize(playerContainer->size());
+    }
+    else
+    {
+        this->setCentralWidget(originalCentralWidget);
+        ui->newPlaylist->setVisible(true);
+        ui->playlists->setVisible(true);
+        ui->songList->setVisible(true);
+        ui->selectDirButton->setVisible(true);
+        this->resize(800, 600);
+    }
 }

@@ -27,6 +27,7 @@ public:
 
 private slots:
     void initPlayer(); // Player initialisieren
+    void initMiniPlayer();
     void setUpSleepTimer(); // Sleep Timer initialisieren
     void selectDirectory(); // Verzeichnis auswählen
     void displayMetaData(Song* song); // Metadaten anzeigen
@@ -52,6 +53,7 @@ private slots:
     void importPlaylistsFromJson();
     void changeVolume(int value); // Ändern der Lautstärke
     void printColored(const QString& text, const QString& textColor, const QString& backgroundColor, bool bold); // farbige Konsolenausgaben
+    void toggleMiniPlayer();
 
 private:
     Ui::MainWindow *ui;
@@ -65,6 +67,9 @@ private:
     Queue *queue;
     SleepTimerWindow *sleeptimerwindow;
     PlaylistManager *allPlaylists;
+    QWidget *playerContainer;
+    QVBoxLayout *playerLayout;
+    QWidget *originalCentralWidget;
     bool isSongLooped = false;
     bool isPlaylistLooped = false;
     bool isShuffled = false;

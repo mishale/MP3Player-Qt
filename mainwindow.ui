@@ -16,8 +16,8 @@
   <widget class="QWidget" name="centralwidget">
    <property name="minimumSize">
     <size>
-     <width>800</width>
-     <height>600</height>
+     <width>100</width>
+     <height>75</height>
     </size>
    </property>
    <widget class="QWidget" name="horizontalLayoutWidget">
@@ -98,11 +98,22 @@
         </layout>
        </item>
        <item>
-        <widget class="QLabel" name="songTitle">
-         <property name="text">
-          <string>Song</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="songTitle">
+           <property name="text">
+            <string>Song</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="miniPlayerBtn">
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QLabel" name="songAuthor">
