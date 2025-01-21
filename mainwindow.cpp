@@ -185,13 +185,9 @@ void MainWindow::initMiniPlayer()
 
     ui->rightVerticalLayout->layout()->removeItem(ui->buttonsHorizontalLayout);
     playerLayout->addLayout(ui->buttonsHorizontalLayout);
-    // Sicherstellen, dass playerContainer Teil der UI ist
-    // Zum Beispiel, indem es in das bestehende Layout eingefügt wird
     if (ui->rightVerticalLayout->layout()) {
         ui->rightVerticalLayout->layout()->addWidget(playerContainer);
     }
-    originalCentralWidget = centralWidget();
-    // Das Widget anzeigen
     playerContainer->show();
 }
 
@@ -877,24 +873,18 @@ void MainWindow::printColored(const QString& text, const QString& textColor, con
 
 void MainWindow::toggleMiniPlayer()
 {
-    if(ui->playlists->isVisible())
-    {
-        //originalCentralWidget = this->centralWidget();
-        ui->newPlaylist->setVisible(false);
-        ui->playlists->setVisible(false);
-        ui->songList->setVisible(false);
-        ui->selectDirButton->setVisible(false);
-        playerContainer->setGeometry(1,1,400,100);
-        this->setCentralWidget(playerContainer);
-        this->resize(playerContainer->size());
-    }
-    else
-    {
-        this->setCentralWidget(originalCentralWidget);
-        ui->newPlaylist->setVisible(true);
-        ui->playlists->setVisible(true);
-        ui->songList->setVisible(true);
-        ui->selectDirButton->setVisible(true);
-        this->resize(800, 600);
-    }
+    ui->miniPlayerBtn->setVisible(false);
+    QDialog *MiniPlayer = new QDialog(this);
+    MiniPlayer->setWindowFlags(MiniPlayer->windowFlags() | Qt::WindowStaysOnTopHint);
+    playerContainer->setGeometry(1,1,400,150);
+    playerContainer->setParent(MiniPlayer);
+    MiniPlayer->resize(playerContainer->size());
+    MiniPlayer->show();
+    connect(MiniPlayer, &QDialog::finished, this, [this, MiniPlayer](int result) {
+        // Reagiere direkt auf das Schließen des MiniPlayer-Fensters
+        ui->miniPlayerBtn->setVisible(true);
+        ui->rightVerticalLayout->layout()->addWidget(playerContainer);
+        delete MiniPlayer;
+    });
+
 }
