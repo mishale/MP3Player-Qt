@@ -1,21 +1,47 @@
 QListWidget {
-font-family: 'Gilroy-Medium';
-font-size: 14px;
+    font-family: 'Gilroy-Medium';
+    font-size: 14px;
     border: 1px solid #2D2E2F;
     border-radius: 3px;
     background-color: #ffffff;
     outline: 0;
 }
 
-QListWidget::item {
+QListWidget::item{
     color: #0A0A0B;
     border-left: 3px solid transparent;
-    padding-left: 2px;
-    padding-top: 1px;
-    padding-bottom: 1px;
 }
 
 QListWidget::item:selected {
     background-color: #F0F0F0;
     border-left: 3px solid #2D2E2F;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+QListWidget::item QWidget {
+    padding: 2px;
+}
+
+QListWidget::item QWidget QLabel {
+    font-family: 'Gilroy-Medium';
+    font-size: 14px;
+    /* background-color: green; */
+}
+
+QListWidget::item QWidget QLabel.TitleLabel {
+    color: #0A0A0B;
+}
+
+
+QListWidget::item QWidget QLabel.AuthorLabel {
+    color: #373939;
+    font-size: 12px;
+    margin-top: 1px;
+}
+
+QListWidget::item QWidget QLabel.DurationLabel {
+    color: #5B5C5D;
 }

@@ -61,3 +61,17 @@ void Playlist::clearSongs()
     qDeleteAll(songs);
     songs.clear();
 }
+
+
+void Playlist::printSongs() const
+{
+    qDebug() << "Songs in playlist:" << name;
+    for (const Song* song : songs) {
+        qDebug() << "    Title: " << song->getTitle();
+        qDebug() << "    Author: " << song->getAuthor();
+        qDebug() << "    Duration: " << song->getDuration();
+        qDebug() << "    Date: " << song->getDate();
+        qDebug() << "    File Path: " << song->getFilePath();
+        qDebug() << "----------------------";
+    }
+}

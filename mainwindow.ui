@@ -126,6 +126,12 @@
          <property name="sizeConstraint">
           <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
          </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
          <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
@@ -253,6 +259,9 @@
              <width>80</width>
              <height>30</height>
             </size>
+           </property>
+           <property name="value">
+            <number>99</number>
            </property>
            <property name="orientation">
             <enum>Qt::Orientation::Horizontal</enum>

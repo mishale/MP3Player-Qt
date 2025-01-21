@@ -51,18 +51,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     loadCombinedStylesheet(stylesheetFiles);
 
-    widgetsCreated = false;
-    bibliothek = new Playlist("Bibliothek");
-    currentPlaylist = bibliothek;
-    allPlaylists = new PlaylistManager();
-    queue = new Queue();
-
-    importPlaylistsFromJson();
-
-    ui->playlists->setContextMenuPolicy(Qt::CustomContextMenu);
-    ui->songList->setContextMenuPolicy(Qt::CustomContextMenu);
-
-    initPlayer();
     connect(ui->newPlaylist,        &QPushButton::clicked,                      this, &MainWindow::createPlaylistUI);
     connect(ui->playlists,          &QListWidget::itemClicked,                  this, &MainWindow::getPlaylistOnClick);
     connect(ui->playlists,          &QListWidget::customContextMenuRequested,   this, &MainWindow::showContextMenuPlaylist);
@@ -102,6 +90,23 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pauseButton     ->setIcon(QIcon(":/icons/pause.png"));
     ui->loopSongBtn     ->setIcon(QIcon(":/icons/loop_gray_dark.png"));
     ui->shuffleButton   ->setIcon(QIcon(":/icons/shuffle_gray_dark.png"));
+
+    widgetsCreated = false;
+    allPlaylists = new PlaylistManager();
+    bibliothek = new Playlist("Bibliothek");
+    currentPlaylist = bibliothek;
+    allPlaylists->addPlaylist(bibliothek);
+
+    queue = new Queue();
+
+    ui->playlists->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->playlists->addItem(bibliothek->getName());
+    ui->songList->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    initPlayer();
+
+    importPlaylistsFromJson();
+
 }
 
 MainWindow::~MainWindow()
@@ -133,99 +138,111 @@ void MainWindow::initPlayer()
     ui->volumeSlider->setRange(0,100);
 }
 
-bool MainWindow::checkIfSongIsInPlaylist(QString filePath, Playlist* playlist)
+bool MainWindow::IsSongInPlaylist(QString filePath, Playlist* playlist)
 {
-    if(!playlist->getSongs().isEmpty())
-    {
-        for(Song* s : playlist->getSongs())
-        {
-            if(s->getFilePath() == filePath)
-            {
-                return true;
-            }
-        }
+    if (playlist->getSongs().isEmpty()) {
         return false;
     }
+
+    for (Song* song : playlist->getSongs()) {
+        if (song->getFilePath() == filePath) {
+            return true;
+        }
+    }
+
     return false;
 }
+
 void MainWindow::selectDirectory()
 {
-
     QString fileName = QFileDialog::getOpenFileName(this, "Wähle eine MP3-Datei aus", QString(), "MP3-Dateien (*.mp3)");
 
-    if (ui->playlists->findItems("Bibliothek", Qt::MatchExactly).isEmpty())
-    {
-        ui->playlists->addItem(bibliothek->getName());
-        if(allPlaylists->findPlaylistByName("Bibliothek") == nullptr)
-        {
-            allPlaylists->addPlaylist(bibliothek);
-        }
-    }
-    if (!fileName.isEmpty())
-    {
-        if(checkIfSongIsInPlaylist(fileName, bibliothek))
-        {
-            qWarning() << "keine doppelten Songs in Playlist erlaubt";
-        }
-        else
-        {
-            Song* song = new Song(fileName);
-            bibliothek->addSong(song);
-            ui->playlists->setCurrentItem(ui->playlists->findItems("Bibliothek", Qt::MatchExactly).first());
-            catchMetaData(song);
-        }
+    if (fileName.isEmpty()) {
+        return;
     }
 
+    if (IsSongInPlaylist(fileName, bibliothek)) {
+        printColored("keine doppelten Songs in Playlist erlaubt", "rot", "", false);
+        return;
+    }
+
+    Song* song = new Song(fileName);
+    catchMetaData(song);
+    bibliothek->addSong(song);
+    bibliothek->printSongs();
+    ui->playlists->setCurrentItem(ui->playlists->findItems("Bibliothek", Qt::MatchExactly).first());
+
     exportSongListToJson();
+    importPlaylistsFromJson();
 }
 
 
 void MainWindow::displayPlaylist(Playlist* playlist)
 {
+    printColored("Funktionsaufruf: displayPlaylist()", "gelb", "", false);
     ui->songList->clear();
     QList<Song*> allSongs = playlist->getSongs();
     if (!allSongs.isEmpty())
     {
-        for (Song* s : allSongs)
-        {
-            QWidget* itemWidget = new QWidget(ui->songList);
-
-            QLabel* leftLabel = new QLabel(s->getTitle(), itemWidget);
-
-            QString durationStr = s->getDuration(); // Dauer als QString
-            QString formattedDuration;
-            if (!durationStr.isEmpty()) {
-                qint64 durationMs = durationStr.toLongLong();
-                int minutes = durationMs / 60000;
-                int seconds = (durationMs % 60000) / 1000;
-
-                formattedDuration = QString("%1:%2")
-                                        .arg(minutes, 2, 10, QChar('0')) // Minuten, zweistellig
-                                        .arg(seconds, 2, 10, QChar('0')); // Sekunden, zweistellig
-            } else {
-                formattedDuration = "Dauer unbekannt";
-            }
-
-            QLabel* rightLabel = new QLabel(formattedDuration, itemWidget);
-
-            // Layout für die Labels
-            QHBoxLayout* layout = new QHBoxLayout(itemWidget);
-            layout->addWidget(leftLabel);
-            layout->addStretch();
-            layout->addWidget(rightLabel);
-
-            itemWidget->setLayout(layout);
-
-            QListWidgetItem* listItem = new QListWidgetItem(ui->songList);
-            listItem->setSizeHint(itemWidget->sizeHint());
-
-            // Speichere den Song-Zeiger in den Listeneintrag
-            listItem->setData(Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(s)));
-
-            // Verbinde das Widget mit dem Listeneintrag
-            ui->songList->setItemWidget(listItem, itemWidget);
+        for (Song* s : allSongs) {
+            addSongToUIList(s);
         }
     }
+    playlist->printSongs();
+}
+
+void MainWindow::addSongToUIList(Song* s)
+{
+    // Widget für den Song erstellen
+    QWidget* itemWidget = new QWidget(ui->songList);
+
+    QLabel* TitleLabel = new QLabel(s->getTitle(), itemWidget);
+    addClass(TitleLabel, "TitleLabel");
+
+    QLabel* AuthorLabel = new QLabel(s->getAuthor(), itemWidget); // Autor hinzufügen
+    addClass(AuthorLabel, "AuthorLabel");
+
+    QString durationStr = s->getDuration(); // Dauer als QString
+    QString formattedDuration;
+    if (!durationStr.isEmpty()) {
+        qint64 durationMs = durationStr.toLongLong();
+        int minutes = durationMs / 60000;
+        int seconds = (durationMs % 60000) / 1000;
+
+        formattedDuration = QString("%1:%2")
+                                .arg(minutes, 2, 10, QChar('0')) // Minuten, zweistellig
+                                .arg(seconds, 2, 10, QChar('0')); // Sekunden, zweistellig
+    } else {
+        formattedDuration = "Dauer unbekannt";
+    }
+
+    QLabel* DurationLabel = new QLabel(formattedDuration, itemWidget);
+    addClass(DurationLabel, "DurationLabel");
+
+    // Layout für Titel und Autor (ohne Abstand)
+    QHBoxLayout* titleAuthorLayout = new QHBoxLayout();
+    titleAuthorLayout->setContentsMargins(0, 0, 0, 0);
+    titleAuthorLayout->setSpacing(0); // Kein Abstand zwischen den Widgets
+    titleAuthorLayout->addWidget(TitleLabel);
+    titleAuthorLayout->addWidget(AuthorLabel);
+
+    // Hauptlayout für die gesamte Zeile
+    QHBoxLayout* layout = new QHBoxLayout(itemWidget);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addLayout(titleAuthorLayout); // Titel und Autor als Gruppe hinzufügen
+    layout->addStretch();
+    layout->addWidget(DurationLabel);
+
+    itemWidget->setLayout(layout);
+
+    QListWidgetItem* listItem = new QListWidgetItem(ui->songList);
+    listItem->setSizeHint(itemWidget->sizeHint());
+
+    // Speichere den Song-Zeiger in den Listeneintrag
+    listItem->setData(Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(s)));
+
+    // Verbinde das Widget mit dem Listeneintrag
+    ui->songList->setItemWidget(listItem, itemWidget);
 }
 
 
@@ -237,7 +254,8 @@ void MainWindow::catchMetaData(Song* song)
     connect(tempPlayer, &QMediaPlayer::mediaStatusChanged, this, [this, song, tempPlayer](QMediaPlayer::MediaStatus status) {
         if (status == QMediaPlayer::LoadedMedia) {
             QList<QString> metaList = song->getMetaData(tempPlayer->metaData());
-            ui->songList->addItem(metaList.at(0));
+            //ui->songList->addItem
+            addSongToUIList(song);
             tempPlayer->deleteLater();
         }
     });
@@ -267,7 +285,6 @@ void MainWindow::buildQueue(Song* song, Playlist* playlist)
             queue->forwards();
         }
     }
-
 }
 
 void MainWindow::startSong(QListWidgetItem *item)
@@ -397,7 +414,7 @@ void MainWindow::fromLibToPlaylist(Playlist* playlist)
         return;
     }
 
-    if (checkIfSongIsInPlaylist(songToAdd->getFilePath(), playlist)) {
+    if (IsSongInPlaylist(songToAdd->getFilePath(), playlist)) {
         qWarning() << "Song ist bereits in der Zielplaylist vorhanden!";
         return;
     }
@@ -698,7 +715,6 @@ void MainWindow::importPlaylistsFromJson()
         QJsonObject playlistObj = playlistValue.toObject();
         QString playlistName = playlistObj["name"].toString();
         if (playlistName.isEmpty()) continue;
-
         // Überprüfe, ob die Playlist bereits existiert
         Playlist* playlist = allPlaylists->findPlaylistByName(playlistName);
         if (!playlist) {
@@ -707,6 +723,9 @@ void MainWindow::importPlaylistsFromJson()
             allPlaylists->addPlaylist(playlist);
             ui->playlists->addItem(playlist->getName());
             exportSongListToJson();
+            qDebug() << "Playlist wurde nicht gefunden. Sie wurde neu erstellt.";
+        } else {
+            qDebug() << "Playlist wurde gefunden.";
         }
 
         QJsonArray songsArray = playlistObj["songs"].toArray();

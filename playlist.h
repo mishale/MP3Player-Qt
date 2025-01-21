@@ -21,6 +21,7 @@ public:
     }
     bool containsSong(const QString& filePath) const;
     Song* findSong(const QString& filePath) const; // Song finden
+    void printSongs() const;
 
 private:
 

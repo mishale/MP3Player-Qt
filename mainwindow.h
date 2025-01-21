@@ -66,8 +66,10 @@ private:
     bool isPlaylistLooped = false;
     bool isShuffled = false;
     void loadCombinedStylesheet(const QStringList &stylesheetFiles);
-    bool checkIfSongIsInPlaylist(QString filePath, Playlist* playlist);
+    bool IsSongInPlaylist(QString filePath, Playlist* playlist); // Prüft, ob Song bereits in Playlist gespeichert ist
     void displayPlaylist(Playlist* playlist); // Befüllen des QListWidgets mit Songs
+    void addSongToUIList(Song* s);
+    bool isSongInUIList(Song* s);
     void catchMetaData(Song* song); // zum einmaligen Abgreifen der Metadaten
     void buildQueue(Song* song, Playlist* playlist); // bildet Warteschlange
     Playlist* getPlaylistByGUI(QListWidgetItem *selectedItem); // Playlist-Objekt erreichbar durch GUI
