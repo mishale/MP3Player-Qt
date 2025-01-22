@@ -1,37 +1,52 @@
 #include "sleeptimerwindow.h"
+#include "mainwindow.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QDebug>
 
 SleepTimerWindow::SleepTimerWindow(QWidget* parent)
-    : QDialog(parent), timer(new QTimer(this)), remainingTime(0) {
+    : QDialog(parent), timer(new QTimer(this)), remainingTime(0), isTimerActive(false) {
     setWindowTitle("Sleep Timer");
-    resize(300, 200);
+    resize(300, 30);
 
     dropdown = new QComboBox(this);
     dropdown->addItems({"3 Sekunden", "5 Minuten", "10 Minuten", "15 Minuten", "30 Minuten", "1 Stunde"});
+    dropdown->setFixedHeight(30);
+    dropdown->setFocusPolicy(Qt::NoFocus);
 
-    checkbox = new QCheckBox("Sleeptimer aktivieren", this);
+    button = new QPushButton("Starten", this);
+    button->setFixedHeight(30);
+    button->setFixedWidth(80);
 
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    QHBoxLayout* controlLayout = new QHBoxLayout;
+    QHBoxLayout* mainLayout = new QHBoxLayout(this);
 
-    controlLayout->addWidget(dropdown);
-    controlLayout->addWidget(checkbox);
-    mainLayout->addLayout(controlLayout);
+    mainLayout->addWidget(dropdown, 6); // Stretch-Faktor 5
+    mainLayout->addWidget(button, 1);  // Stretch-Faktor 1
+
     setLayout(mainLayout);
 
-    connect(checkbox, &QCheckBox::toggled, this, [this](bool checked) {
-        if (checked) {
+    MainWindow* mainWindow = qobject_cast<MainWindow*>(parent);
+
+    mainWindow->addClass(this, "SleepTimerWindow");
+    mainWindow->addClass(button, "SleeptimerStart");
+
+    connect(button, &QPushButton::clicked, this, [this, mainWindow]() {
+        if (!isTimerActive) {
             remainingTime = dropdownToMilliseconds(dropdown->currentText());
             if (remainingTime > 0) {
                 timer->start(1000);
+                isTimerActive = true;
+
+                if (mainWindow) {
+                    mainWindow->removeClass(button, "SleeptimerStart");
+                    mainWindow->addClass(button, "SleeptimerStopp");
+                }
+                button->setText("Stoppen");
+
                 qDebug() << "Timer gestartet für" << remainingTime / 1000 << "Sekunden.";
-            } else {
-                checkbox->setChecked(false);
             }
         } else {
-            stopTimer(true);
+            stopTimer(false);
         }
     });
 
@@ -66,7 +81,15 @@ int SleepTimerWindow::getRemainingTime() const {
 void SleepTimerWindow::stopTimer(bool expired) {
     timer->stop();
     remainingTime = 0;
-    checkbox->setChecked(false);
+    isTimerActive = false;
+
+    MainWindow* mainWindow = qobject_cast<MainWindow*>(parent());
+    if (mainWindow) {
+        mainWindow->addClass(button, "SleeptimerStart");
+        mainWindow->removeClass(button, "SleeptimerStopp");
+    }
+    button->setText("Starten");
+
     emit remainingTimeUpdated(0);
 
     if (expired) {

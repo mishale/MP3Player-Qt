@@ -1,0 +1,4 @@
+QDialog
+{
+    background-color: #ffffff;
+}
