@@ -69,7 +69,6 @@ private:
     PlaylistManager *allPlaylists;
     QWidget *playerContainer;
     QVBoxLayout *playerLayout;
-    QWidget *originalCentralWidget;
     bool isSongLooped = false;
     bool isPlaylistLooped = false;
     bool isShuffled = false;
