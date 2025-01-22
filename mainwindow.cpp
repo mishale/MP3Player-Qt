@@ -222,10 +222,10 @@ void MainWindow::selectDirectory()
 
     Song* song = new Song(fileName);
     catchMetaData(song);
-    bibliothek->addSong(song);
     bibliothek->printSongs();
+    bibliothek->addSong(song);
     ui->playlists->setCurrentItem(ui->playlists->findItems("Bibliothek", Qt::MatchExactly).first());
-
+    //addSongToUIList(song);
     exportSongListToJson();
     importPlaylistsFromJson();
 }
@@ -247,16 +247,15 @@ void MainWindow::displayPlaylist(Playlist* playlist)
 
 void MainWindow::addSongToUIList(Song* s)
 {
-    // Widget für den Song erstellen
     QWidget* itemWidget = new QWidget(ui->songList);
 
     QLabel* TitleLabel = new QLabel(s->getTitle(), itemWidget);
     addClass(TitleLabel, "TitleLabel");
 
-    QLabel* AuthorLabel = new QLabel(s->getAuthor(), itemWidget); // Autor hinzufügen
+    QLabel* AuthorLabel = new QLabel(s->getAuthor(), itemWidget);
     addClass(AuthorLabel, "AuthorLabel");
 
-    QString durationStr = s->getDuration(); // Dauer als QString
+    QString durationStr = s->getDuration();
     QString formattedDuration;
     if (!durationStr.isEmpty()) {
         qint64 durationMs = durationStr.toLongLong();
@@ -264,8 +263,8 @@ void MainWindow::addSongToUIList(Song* s)
         int seconds = (durationMs % 60000) / 1000;
 
         formattedDuration = QString("%1:%2")
-                                .arg(minutes, 2, 10, QChar('0')) // Minuten, zweistellig
-                                .arg(seconds, 2, 10, QChar('0')); // Sekunden, zweistellig
+                                .arg(minutes, 2, 10, QChar('0'))
+                                .arg(seconds, 2, 10, QChar('0'));
     } else {
         formattedDuration = "Dauer unbekannt";
     }
@@ -273,17 +272,16 @@ void MainWindow::addSongToUIList(Song* s)
     QLabel* DurationLabel = new QLabel(formattedDuration, itemWidget);
     addClass(DurationLabel, "DurationLabel");
 
-    // Layout für Titel und Autor (ohne Abstand)
+
     QHBoxLayout* titleAuthorLayout = new QHBoxLayout();
     titleAuthorLayout->setContentsMargins(0, 0, 0, 0);
-    titleAuthorLayout->setSpacing(0); // Kein Abstand zwischen den Widgets
+    titleAuthorLayout->setSpacing(0);
     titleAuthorLayout->addWidget(TitleLabel);
     titleAuthorLayout->addWidget(AuthorLabel);
 
-    // Hauptlayout für die gesamte Zeile
     QHBoxLayout* layout = new QHBoxLayout(itemWidget);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addLayout(titleAuthorLayout); // Titel und Autor als Gruppe hinzufügen
+    layout->addLayout(titleAuthorLayout);
     layout->addStretch();
     layout->addWidget(DurationLabel);
 
@@ -292,10 +290,8 @@ void MainWindow::addSongToUIList(Song* s)
     QListWidgetItem* listItem = new QListWidgetItem(ui->songList);
     listItem->setSizeHint(itemWidget->sizeHint());
 
-    // Speichere den Song-Zeiger in den Listeneintrag
     listItem->setData(Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(s)));
 
-    // Verbinde das Widget mit dem Listeneintrag
     ui->songList->setItemWidget(listItem, itemWidget);
 }
 
@@ -308,8 +304,9 @@ void MainWindow::catchMetaData(Song* song)
     connect(tempPlayer, &QMediaPlayer::mediaStatusChanged, this, [this, song, tempPlayer](QMediaPlayer::MediaStatus status) {
         if (status == QMediaPlayer::LoadedMedia) {
             QList<QString> metaList = song->getMetaData(tempPlayer->metaData());
-            //ui->songList->addItem
-            addSongToUIList(song);
+            //ui->songList->addItem;
+            displayPlaylist(bibliothek);
+            //addSongToUIList(song);
             tempPlayer->deleteLater();
         }
     });
@@ -347,6 +344,7 @@ void MainWindow::startSong(QListWidgetItem *item)
     Playlist* playlist = getPlaylistByGUI(ui->playlists->currentItem());
     currentPlaylist = playlist;
     buildQueue(song, playlist);
+    item->setSelected(true);
     mediaPlayer->setSource(queue->getCurrentSong()->getFilePath());
     displayMetaData(song);
     mediaPlayer->play();
@@ -550,6 +548,24 @@ Song* MainWindow::getSongByGUI(QListWidgetItem *selectedItem)
 
 void MainWindow::shuffle()
 {
+    if(ui->songList->count() <= 1) return; // wenn max 1 Element
+
+    std::vector<QListWidgetItem*> items;
+    for (int i = 0; i < ui->songList->count(); ++i) {
+        items.push_back(ui->songList->takeItem(i));
+    }
+    std::random_device rd;
+    std::mt19937 g(rd()); // Zufallsgenerator
+    std::shuffle(items.begin(), items.end(), g);
+
+    for (QListWidgetItem* item : items)
+    {
+        ui->songList->addItem(item);
+    }
+
+    // andere Version
+
+    /*
     isShuffled = !isShuffled;
     if(isShuffled)
     {
@@ -572,6 +588,7 @@ void MainWindow::shuffle()
         ui->loopSongBtn->setToolTip("Shuffle deaktiviert.");
         buildQueue(getSongByGUI(ui->songList->currentItem()), currentPlaylist);
     }
+*/
 }
 
 void MainWindow::playNextSong()
@@ -584,6 +601,14 @@ void MainWindow::playNextSong()
             displayMetaData(queue->getCurrentSong());
             mediaPlayer->setSource(queue->getCurrentSong()->getFilePath());
             mediaPlayer->play();
+            if(ui->songList->currentItem())
+            {
+                int currentRow = ui->songList->row(ui->songList->currentItem());
+                if (currentRow < ui->songList->count() - 1)
+                {
+                    ui->songList->setCurrentItem(ui->songList->item(currentRow + 1));
+                }
+            }
         }
         else // wenn letzter Song
         {
@@ -593,6 +618,10 @@ void MainWindow::playNextSong()
                 mediaPlayer->setSource(queue->getFirst()->getFilePath());
                 mediaPlayer->play();
                 buildQueue(queue->getFirst(),getPlaylistByGUI(ui->playlists->currentItem()));
+                if (ui->songList->count() > 0)
+                {
+                    ui->songList->setCurrentItem(ui->songList->item(0));
+                }
             }
         }
     }
@@ -613,6 +642,13 @@ void MainWindow::playPrevSong()
             displayMetaData(queue->getCurrentSong());
             mediaPlayer->setSource(queue->getCurrentSong()->getFilePath());
             mediaPlayer->play();
+            if(ui->songList->currentItem())
+            {
+                int currentRow = ui->songList->row(ui->songList->currentItem());
+                if (currentRow > 0) {
+                    ui->songList->setCurrentItem(ui->songList->item(currentRow - 1));
+                }
+            }
         }
     }
     else
@@ -880,8 +916,8 @@ void MainWindow::toggleMiniPlayer()
     playerContainer->setParent(MiniPlayer);
     MiniPlayer->resize(playerContainer->size());
     MiniPlayer->show();
+
     connect(MiniPlayer, &QDialog::finished, this, [this, MiniPlayer](int result) {
-        // Reagiere direkt auf das Schließen des MiniPlayer-Fensters
         ui->miniPlayerBtn->setVisible(true);
         ui->rightVerticalLayout->layout()->addWidget(playerContainer);
         delete MiniPlayer;
