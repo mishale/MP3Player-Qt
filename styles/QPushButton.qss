@@ -1,13 +1,13 @@
 QPushButton {
-        border-radius: 2px;
-        background-color: #2D2E2F;
-        color: #FFFFFF;
-        font-family: 'Gilroy-Medium';
-        font-size: 12px;
-        padding-top: 16px;
-        padding-bottom: 16px;
-        padding-left: 32px;
-        padding-right: 32px;
+    border-radius: 2px;
+    background-color: #2D2E2F;
+    color: #FFFFFF;
+    font-family: 'Gilroy-Medium';
+    font-size: 12px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    padding-left: 32px;
+    padding-right: 32px;
 }
 
 QPushButton:hover {
@@ -24,4 +24,22 @@ QPushButton.SleepTimer {
 
 QPushButton:hover.SleepTimer {
     font-family: 'Gilroy-Medium';
+}
+
+QPushButton.PlaceHolder
+{
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: transparent;
+}
+
+QPushButton#miniPlayerBtn
+{
+    background-color: #FFFFFF;
+    border: 1px solid transparent;
+}
+
+QPushButton::hover#miniPlayerBtn
+{
+    border: 1px solid #B2B2B2;
 }

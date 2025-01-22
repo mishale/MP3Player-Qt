@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QTimer>
-#include <QCheckBox>
+#include <QPushButton>
 #include <QComboBox>
 
 class SleepTimerWindow : public QDialog {
@@ -21,9 +21,10 @@ signals:
 
 private:
     QTimer* timer;           // Timer für den Sleeptimer
-    QCheckBox* checkbox;     // Checkbox zum Aktivieren/Deaktivieren
+    QPushButton* button;     // Button zum Starten/Stoppen
     QComboBox* dropdown;     // Dropdown-Menü für Zeitwahl
     int remainingTime;       // Verbleibende Zeit in Millisekunden
+    bool isTimerActive;      // Status des Timers
 
     int dropdownToMilliseconds(const QString& text) const;
     void stopTimer(bool expired);

@@ -27,5 +27,11 @@
         <file>songs/SDP x Sido x Esther Graf - Mama hat gesagt (Live aus der Wuhlheide Berlin).mp3</file>
         <file>songs/APT.mp3</file>
         <file>styles/QToolTip.qss</file>
+        <file>styles/QComboBox.qss</file>
+        <file>styles/QWidget.qss</file>
+        <file>styles/QMenu.qss</file>
+        <file>icons/arrow_down.png</file>
+        <file>icons/expand_player.png</file>
+        <file>styles/QDialog.qss</file>
     </qresource>
 </RCC>

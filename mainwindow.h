@@ -24,6 +24,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void addClass(QWidget* widget, const QString& classToAdd);
+    void removeClass(QWidget* widget, const QString& classToRemove);
 
 private slots:
     void initPlayer(); // Player initialisieren
@@ -81,8 +83,6 @@ private:
     void buildQueue(Song* song, Playlist* playlist); // bildet Warteschlange
     Playlist* getPlaylistByGUI(QListWidgetItem *selectedItem); // Playlist-Objekt erreichbar durch GUI
     Song* getSongByGUI(QListWidgetItem *selectedItem); // Song-Objekt erreichbar durch GUI
-    void addClass(QWidget* widget, const QString& classToAdd);
-    void removeClass(QWidget* widget, const QString& classToRemove);
 };
 #endif // MAINWINDOW_H
 

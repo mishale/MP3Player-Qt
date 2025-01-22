@@ -1,0 +1,46 @@
+QComboBox {
+    background-color: #FFFFFF;
+    border: 1px solid #0A0A0B;
+    border-radius: 5px;
+    padding: 5px;
+    font-family: 'Gilroy-Light';
+    color: #333333;
+}
+
+QComboBox:hover {
+    font-family: 'Gilroy-Bold';
+}
+
+QComboBox:focus {
+    font-family: 'Gilroy-Bold';
+    outline: none;
+}
+
+QComboBox::drop-down {
+    border-left: 1px solid #0A0A0B;
+    width: 10px; /* Breite des Drop-Down-Pfeils */
+}
+
+QComboBox::down-arrow {
+    image: url(:/icons/arrow_down.png); /* Ersetze durch den Pfad zu deinem Pfeilsymbol */
+    width: 80px;
+    height: 10px;
+    padding: 5px 0;
+    margin: 5px 0;
+}
+
+QComboBox QAbstractItemView {
+    border: 1px solid #2D2E2F;
+    background-color: #FFFFFF;
+    outline: none;
+}
+
+QComboBox QAbstractItemView::item {
+    background-color: #2D2E2F;
+    color: #FFFFFF;
+}
+
+QComboBox QAbstractItemView::item:selected {
+    color: #2D2E2F;
+    background-color: #FFFFFF;
+}

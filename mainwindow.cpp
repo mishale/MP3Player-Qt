@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    setWindowTitle("MP3-Player");
+
     QFontDatabase::addApplicationFont(":/fonts/Gilroy-Heavy.ttf");
     QFontDatabase::addApplicationFont(":/fonts/Gilroy-Bold.ttf");
     QFontDatabase::addApplicationFont(":/fonts/Gilroy-Medium.ttf");
@@ -44,10 +46,14 @@ MainWindow::MainWindow(QWidget *parent)
         ":/styles/QMainWindow.qss",
         ":/styles/QToolTip.qss",
         ":/styles/QLabel.qss",
+        ":/styles/QComboBox.qss",
         ":/styles/QListWidget.qss",
         ":/styles/QPushButton.qss",
         ":/styles/QToolButton.qss",
-        ":/styles/QSlider.qss"
+        ":/styles/QSlider.qss",
+        ":/styles/QWidget.qss",
+        ":/styles/QDialog.qss",
+        ":/styles/QMenu.qss",
     };
 
     connect(ui->newPlaylist,        &QPushButton::clicked,                      this, &MainWindow::createPlaylistUI);
@@ -88,11 +94,15 @@ MainWindow::MainWindow(QWidget *parent)
     addClass(ui->songTitle,     "SongName");
     addClass(ui->songAuthor,    "SongInterpret");
 
-    addClass(ui->sleepTimer, "SleepTimer");
+    addClass(ui->sleepTimer,    "SleepTimer");
 
     ui->pauseButton     ->setIcon(QIcon(":/icons/pause.png"));
     ui->loopSongBtn     ->setIcon(QIcon(":/icons/loop_gray_dark.png"));
     ui->shuffleButton   ->setIcon(QIcon(":/icons/shuffle_gray_dark.png"));
+
+    addClass(ui->PlaceHolder_1,   "PlaceHolder");
+
+    ui->miniPlayerBtn   ->setIcon(QIcon(":/icons/expand_player.png"));
 
     widgetsCreated = false;
     allPlaylists = new PlaylistManager();
@@ -116,6 +126,7 @@ MainWindow::MainWindow(QWidget *parent)
     loadCombinedStylesheet(stylesheetFiles);
 
     sleeptimerwindow = new SleepTimerWindow(this);
+    sleeptimerwindow->setWindowTitle("Sleep Timer");
     ui->sleepTimer->setToolTip("Sleeptimer");
     connect(sleeptimerwindow, &SleepTimerWindow::remainingTimeUpdated, this, [this](int remainingSeconds) {
         int minutes = remainingSeconds / 60;
@@ -176,7 +187,6 @@ void MainWindow::initPlayer()
 
 void MainWindow::initMiniPlayer()
 {
-
     ui->rightVerticalLayout->layout()->removeItem(ui->horizontalLayout);
     playerLayout->addLayout(ui->horizontalLayout);
 
@@ -909,8 +919,11 @@ void MainWindow::printColored(const QString& text, const QString& textColor, con
 
 void MainWindow::toggleMiniPlayer()
 {
-    ui->miniPlayerBtn->setVisible(false);
+    addClass(ui->miniPlayerBtn,   "PlaceHolder");
+    ui->miniPlayerBtn->setIcon(QIcon());
+    ui->miniPlayerBtn->setEnabled(false);
     QDialog *MiniPlayer = new QDialog(this);
+    MiniPlayer->setWindowTitle("Miniplayer");
     MiniPlayer->setWindowFlags(MiniPlayer->windowFlags() | Qt::WindowStaysOnTopHint);
     playerContainer->setGeometry(1,1,400,150);
     playerContainer->setParent(MiniPlayer);
@@ -919,6 +932,9 @@ void MainWindow::toggleMiniPlayer()
 
     connect(MiniPlayer, &QDialog::finished, this, [this, MiniPlayer](int result) {
         ui->miniPlayerBtn->setVisible(true);
+        removeClass(ui->miniPlayerBtn,   "PlaceHolder");
+        ui->miniPlayerBtn   ->setIcon(QIcon(":/icons/expand_player.png"));
+        ui->miniPlayerBtn->setEnabled(true);
         ui->rightVerticalLayout->layout()->addWidget(playerContainer);
         delete MiniPlayer;
     });
