@@ -1,0 +1,21 @@
+QWidget.SleepTimerWindows
+{
+    background-color: #ffffff;
+}
+
+QWidget.SleepTimerWindows QPushButton
+{
+    padding: 0;
+}
+
+
+QWidget.SleepTimerWindows QPushButton.SleeptimerStart
+{
+    background-color: hsl(113, 58%, 29%);
+}
+
+
+QWidget.SleepTimerWindows QPushButton.SleeptimerStopp
+{
+    background-color: hsl(0, 58%, 29%);
+}
